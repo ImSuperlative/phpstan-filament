@@ -1,0 +1,11 @@
+# Feature #6: ->relationship() string validation
+# Enabled by: filamentPhpstan.checkRelationships (default: true)
+
+services:
+    -
+        class: ImSuperlative\FilamentPhpstan\Rules\RelationshipValidationRule
+        tags:
+            - phpstan.rules.rule
+        arguments:
+            relationship: %filamentPhpstan.checkRelationships%
+            modelReflectionHelper: @ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper

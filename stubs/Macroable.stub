@@ -1,0 +1,14 @@
+<?php
+
+namespace Filament\Support\Concerns;
+
+trait Macroable
+{
+    /**
+     * @param  string  $name
+     * @param  callable  $macro
+     * @param-closure-this $this $macro
+     * @return void
+     */
+    public static function macro(string $name, callable $macro): void {}
+}

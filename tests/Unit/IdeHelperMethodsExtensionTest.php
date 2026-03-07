@@ -1,0 +1,86 @@
+<?php
+
+use ImSuperlative\FilamentPhpstan\Data\IdeHelperMethodData;
+use ImSuperlative\FilamentPhpstan\Data\IdeHelperModelData;
+use ImSuperlative\FilamentPhpstan\Extensions\IdeHelper\IdeHelperMethodsExtension;
+use ImSuperlative\FilamentPhpstan\Support\IdeHelperModelParser;
+use ImSuperlative\FilamentPhpstan\Support\IdeHelperRegistry;
+use PHPStan\PhpDocParser\Lexer\Lexer;
+use PHPStan\PhpDocParser\Parser\ConstExprParser;
+use PHPStan\PhpDocParser\Parser\PhpDocParser;
+use PHPStan\PhpDocParser\Parser\TypeParser;
+use PHPStan\PhpDocParser\ParserConfig;
+use PHPStan\Reflection\ReflectionProvider;
+use PHPStan\Testing\PHPStanTestCase;
+use PHPStan\Type\ObjectType;
+use PHPStan\Type\StringType;
+
+beforeEach(function () {
+    /** @var \PHPStan\Parser\Parser $parser */
+    $parser = PHPStanTestCase::getContainer()->getService('defaultAnalysisParser');
+
+    $config = new ParserConfig(usedAttributes: []);
+    $lexer = new Lexer($config);
+    $constExprParser = new ConstExprParser($config);
+    $typeParser = new TypeParser($config, $constExprParser);
+    $phpDocParser = new PhpDocParser($config, $typeParser, $constExprParser);
+
+    $modelParser = new IdeHelperModelParser($parser, $lexer, $phpDocParser);
+
+    // Use manual registration — barryvdh only has native Model methods
+    $this->registry = new IdeHelperRegistry($modelParser, true, '', __DIR__);
+    $this->registry->register(new IdeHelperModelData(
+        'Fixtures\App\Models\Post',
+        [],
+        [
+            'customQuery' => new IdeHelperMethodData('customQuery', new ObjectType('Illuminate\Database\Eloquent\Builder'), true),
+            'instanceHelper' => new IdeHelperMethodData('instanceHelper', new StringType, false),
+        ],
+    ));
+
+    $this->extension = new IdeHelperMethodsExtension($this->registry);
+    $this->reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
+});
+
+it('provides method from IDE helper', function () {
+    $classReflection = $this->reflectionProvider->getClass('Fixtures\App\Models\Post');
+
+    expect($this->extension->hasMethod($classReflection, 'customQuery'))->toBeTrue();
+
+    $method = $this->extension->getMethod($classReflection, 'customQuery');
+    expect($method->getName())->toBe('customQuery')
+        ->and($method->isStatic())->toBeTrue();
+});
+
+it('provides non-static method', function () {
+    $classReflection = $this->reflectionProvider->getClass('Fixtures\App\Models\Post');
+
+    $method = $this->extension->getMethod($classReflection, 'instanceHelper');
+    expect($method->isStatic())->toBeFalse()
+        ->and($method->isPublic())->toBeTrue()
+        ->and($method->getVariants())->toHaveCount(1);
+});
+
+it('returns false for unknown method', function () {
+    $classReflection = $this->reflectionProvider->getClass('Fixtures\App\Models\Post');
+
+    expect($this->extension->hasMethod($classReflection, 'nonexistent_method'))->toBeFalse();
+});
+
+it('returns false for class not in IDE helper', function () {
+    $classReflection = $this->reflectionProvider->getClass('stdClass');
+
+    expect($this->extension->hasMethod($classReflection, 'anything'))->toBeFalse();
+});
+
+it('does not provide method already on real model', function () {
+    $classReflection = $this->reflectionProvider->getClass('Fixtures\App\Models\Post');
+
+    $this->registry->register(new IdeHelperModelData(
+        'Fixtures\App\Models\Post',
+        [],
+        ['author' => new IdeHelperMethodData('author', new ObjectType('Illuminate\Database\Eloquent\Relations\BelongsTo'))],
+    ));
+
+    expect($this->extension->hasMethod($classReflection, 'author'))->toBeFalse();
+});

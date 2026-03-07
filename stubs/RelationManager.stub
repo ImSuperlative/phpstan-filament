@@ -1,0 +1,14 @@
+<?php
+
+namespace Filament\Resources\RelationManagers;
+
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * @template TOwnerRecord of Model = Model
+ */
+class RelationManager
+{
+    /** @return TOwnerRecord */
+    public function getOwnerRecord(): Model {}
+}

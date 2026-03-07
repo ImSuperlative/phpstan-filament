@@ -1,0 +1,6 @@
+includes:
+    - ../../../extension.neon
+
+parameters:
+    filamentPhpstan:
+        checkFieldPaths: 3

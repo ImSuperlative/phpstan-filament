@@ -1,0 +1,14 @@
+<?php
+
+namespace Filament\Resources\Pages;
+
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * @template TModel of Model = Model
+ */
+class ManageRelatedRecords
+{
+    /** @return TModel */
+    public function getOwnerRecord(): Model {}
+}

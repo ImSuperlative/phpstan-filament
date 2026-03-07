@@ -1,0 +1,10 @@
+# Redundant ->enum() call detection
+# Enabled by: filamentPhpstan.checkRedundantEnum (default: true)
+
+services:
+    -
+        class: ImSuperlative\FilamentPhpstan\Rules\RedundantEnumRule
+        tags:
+            - phpstan.rules.rule
+        arguments:
+            redundantEnum: %filamentPhpstan.checkRedundantEnum%

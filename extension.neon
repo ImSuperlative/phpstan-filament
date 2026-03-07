@@ -1,0 +1,195 @@
+parametersSchema:
+    filamentPhpstan: structure([
+        typeOwnerRecord: bool()
+        typeRecordClosures: bool()
+        typeStateClosures: bool()
+        typeOperationLiterals: bool()
+        typeActionData: bool()
+        typeActionRecords: bool()
+        typeMacroMethods: bool()
+        typeIdeHelper: bool()
+        ideHelperPath: string()
+        checkClosureInjection: bool()
+        checkReservedClosureInjection: bool()
+        checkFieldPaths: int()
+        checkRelationships: bool()
+        checkRedundantEnum: bool()
+        enableSchemaCallSitePreScan: bool()
+        # Extend
+        closureInjectionMethods: arrayOf(arrayOf(string()))
+    ])
+
+parameters:
+    bootstrapFiles:
+        - src/Support/helpers.php
+    filamentPhpstan:
+        typeOwnerRecord: true
+        typeRecordClosures: true
+        typeStateClosures: true
+        typeOperationLiterals: true
+        typeActionData: true
+        typeActionRecords: true
+        typeMacroMethods: true
+        typeIdeHelper: true
+        ideHelperPath: ''
+        checkClosureInjection: true
+        checkReservedClosureInjection: false
+        checkFieldPaths: 1
+        checkRelationships: true
+        checkRedundantEnum: true
+        enableSchemaCallSitePreScan: false
+        # Extend
+        closureInjectionMethods: []
+
+services:
+    -
+        class: ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper
+        arguments:
+            reflectionProvider: @reflectionProvider
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Resolvers\FieldPathResolver
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Resolvers\FormComponentStateMap
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\VendorAstParser
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\InjectionMapFactory
+        arguments:
+            userMethodAdditions: %filamentPhpstan.closureInjectionMethods%
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\TypedInjectionMap
+        factory: @ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\InjectionMapFactory::create()
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Resolvers\FormOptionsNarrower
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Resolvers\FormComponentTypeNarrower
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Resolvers\FormComponentChainResolver
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Resolvers\AnnotationReader
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Resolvers\ResourceModelResolver
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Collectors\TableQueryRegistry
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Collectors\TableQueryCollector
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Parser\StatePathPrefixVisitor
+        arguments:
+            parser: @defaultAnalysisParser
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Collectors\SchemaCallSitePreScanner
+        arguments:
+            enabled: %filamentPhpstan.enableSchemaCallSitePreScan%
+            analysedPaths: %analysedPaths%
+            analysedPathsFromConfig: %analysedPathsFromConfig%
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Collectors\SchemaCallSiteRegistry
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Collectors\SchemaCallSiteCollector
+        tags:
+            - phpstan.collector
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\OperationLiteralHandler
+        arguments:
+            operationLiteral: %filamentPhpstan.typeOperationLiterals%
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\RecordClosureHandler
+        arguments:
+            recordClosure: %filamentPhpstan.typeRecordClosures%
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\ActionRecordsHandler
+        arguments:
+            actionRecords: %filamentPhpstan.typeActionRecords%
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\ActionDataHandler
+        arguments:
+            actionData: %filamentPhpstan.typeActionData%
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Resolvers\StateTypeResolver
+        arguments:
+            makeFieldValidation: %filamentPhpstan.checkFieldPaths%
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\StateClosureHandler
+        arguments:
+            stateClosure: %filamentPhpstan.typeStateClosures%
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\LivewireClosureHandler
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\FilamentClosureTypeExtension
+        tags:
+            - phpstan.methodParameterClosureTypeExtension
+        arguments:
+            handlers:
+                - @ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\OperationLiteralHandler
+                - @ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\RecordClosureHandler
+                - @ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\ActionRecordsHandler
+                - @ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\ActionDataHandler
+                - @ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\StateClosureHandler
+                - @ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\LivewireClosureHandler
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Extensions\MacroMethods\MacroMethodsClassReflectionExtension
+        tags:
+            - phpstan.broker.methodsClassReflectionExtension
+            - phpstan.stubFilesExtension
+        arguments:
+            macroSupport: %filamentPhpstan.typeMacroMethods%
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Support\IdeHelperModelParser
+        arguments:
+            parser: @defaultAnalysisParser
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Support\IdeHelperRegistry
+        arguments:
+            enabled: %filamentPhpstan.typeIdeHelper%
+            customPath: %filamentPhpstan.ideHelperPath%
+            currentWorkingDirectory: %currentWorkingDirectory%
+
+includes:
+    - config/owner-record.neon
+    - config/record-closure.neon
+    - config/state-closure.neon
+    - config/make-field-validation.neon
+    - config/operation-literal.neon
+    - config/relationship.neon
+    - config/action-data.neon
+    - config/action-records.neon
+    - config/closure-injection.neon
+    - config/redundant-enum.neon
+    - config/macro.neon
+    - config/ide-helper.neon

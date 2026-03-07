@@ -1,0 +1,3 @@
+parameters:
+    filamentPhpstan:
+        typeStateClosures: false

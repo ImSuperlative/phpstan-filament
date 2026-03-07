@@ -1,0 +1,14 @@
+# Feature: IDE Helper model property/method integration
+# Enabled by: filamentPhpstan.typeIdeHelper (default: true)
+# Custom path: filamentPhpstan.ideHelperPath (default: '', auto-detect)
+
+services:
+    -
+        class: ImSuperlative\FilamentPhpstan\Extensions\IdeHelper\IdeHelperPropertiesExtension
+        tags:
+            - phpstan.broker.propertiesClassReflectionExtension
+
+    -
+        class: ImSuperlative\FilamentPhpstan\Extensions\IdeHelper\IdeHelperMethodsExtension
+        tags:
+            - phpstan.broker.methodsClassReflectionExtension
