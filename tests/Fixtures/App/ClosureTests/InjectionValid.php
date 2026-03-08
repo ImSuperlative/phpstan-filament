@@ -81,4 +81,14 @@ class InjectionValid
                 // All valid for Action
             });
     }
+
+    public static function actionWithContainerDiReservedName(): Action
+    {
+        // Container DI with a reserved name ($settings) — valid because it's object-typed
+        return Action::make('deploy')
+            ->action(function (\Illuminate\Contracts\Auth\Guard $settings): void {
+                // $settings is a reserved name but typed as an object — container DI
+            })
+            ->visible(fn (\Illuminate\Contracts\Auth\Guard $settings): bool => $settings->check());
+    }
 }

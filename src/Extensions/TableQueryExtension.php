@@ -1,9 +1,10 @@
 <?php
 
-namespace ImSuperlative\FilamentPhpstan\Collectors;
+namespace ImSuperlative\FilamentPhpstan\Extensions;
 
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use ImSuperlative\FilamentPhpstan\Collectors\TableQueryRegistry;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\MethodReflection;
@@ -18,7 +19,7 @@ use PHPStan\Type\Type;
  * populated before closure type extensions process column closures in
  * `->columns([...])`.
  */
-final class TableQueryCollector implements DynamicMethodReturnTypeExtension
+final class TableQueryExtension implements DynamicMethodReturnTypeExtension
 {
     public function __construct(
         protected readonly TableQueryRegistry $registry,

@@ -376,9 +376,9 @@ final class ClosureInjectionRule implements Rule
      */
     protected function isAllowedType(Type $paramType, string $className): bool
     {
-        return $this->injectionMap->isTypeAllowed($className, $paramType)
-            || ($paramType->isObject()->yes()
-                && $this->isSelfOrParent($className, $paramType->getObjectClassNames()[0] ?? ''));
+        // Any object type is valid — resolved via app()->make() (container DI).
+        return $paramType->isObject()->yes()
+            || $this->injectionMap->isTypeAllowed($className, $paramType);
     }
 
     /**

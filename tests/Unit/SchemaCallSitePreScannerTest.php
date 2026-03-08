@@ -6,6 +6,8 @@ use ImSuperlative\FilamentPhpstan\Collectors\SchemaCallSiteRegistry;
 it('discovers configure() call sites from fixture files', function () {
     $scanner = new SchemaCallSitePreScanner(
         enabled: true,
+        filamentPath: '',
+        currentWorkingDirectory: '',
         analysedPaths: [__DIR__.'/../Fixtures'],
     );
 
@@ -20,6 +22,8 @@ it('discovers configure() call sites from fixture files', function () {
 it('returns empty map when disabled', function () {
     $scanner = new SchemaCallSitePreScanner(
         enabled: false,
+        filamentPath: '',
+        currentWorkingDirectory: '',
         analysedPaths: [__DIR__.'/../Fixtures'],
     );
 
@@ -29,6 +33,8 @@ it('returns empty map when disabled', function () {
 it('caches results across multiple calls', function () {
     $scanner = new SchemaCallSitePreScanner(
         enabled: true,
+        filamentPath: '',
+        currentWorkingDirectory: '',
         analysedPaths: [__DIR__.'/../Fixtures/SchemaCallSite.php'],
     );
 
@@ -41,6 +47,8 @@ it('caches results across multiple calls', function () {
 it('populates registry via ensurePreScanned', function () {
     $scanner = new SchemaCallSitePreScanner(
         enabled: true,
+        filamentPath: '',
+        currentWorkingDirectory: '',
         analysedPaths: [__DIR__.'/../Fixtures/SchemaCallSite.php'],
     );
 
@@ -52,13 +60,13 @@ it('populates registry via ensurePreScanned', function () {
 });
 
 it('handles empty analysedPaths gracefully', function () {
-    $scanner = new SchemaCallSitePreScanner(enabled: true, analysedPaths: []);
+    $scanner = new SchemaCallSitePreScanner(enabled: true, filamentPath: '', currentWorkingDirectory: '', analysedPaths: []);
 
     expect($scanner->getCallerMap())->toBe([]);
 });
 
 it('handles nonexistent paths gracefully', function () {
-    $scanner = new SchemaCallSitePreScanner(enabled: true, analysedPaths: ['/nonexistent/path']);
+    $scanner = new SchemaCallSitePreScanner(enabled: true, filamentPath: '', currentWorkingDirectory: '', analysedPaths: ['/nonexistent/path']);
 
     expect($scanner->getCallerMap())->toBe([]);
 });

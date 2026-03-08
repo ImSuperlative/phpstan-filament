@@ -19,7 +19,7 @@ final class FormComponentChainResolver
         $componentClass = $scope->getType($expr)->getObjectClassNames()[0] ?? null;
         $enumClass = null;
         $literalOptionKeys = null;
-        $isMultiple = $isInherentlyMultiple;
+        $isMultiple = $isInherentlyMultiple || $this->isInherentlyMultiple($componentClass);
 
         $walkResult = AstHelper::walkMethodChain($expr, function (string $methodName, MethodCall $call) use ($scope, &$enumClass, &$literalOptionKeys, &$isMultiple) {
             $isMultiple = $isMultiple || $methodName === 'multiple';
@@ -54,6 +54,11 @@ final class FormComponentChainResolver
                     : null,
             )
             : null;
+    }
+
+    protected function isInherentlyMultiple(?string $componentClass): bool
+    {
+        return $componentClass === 'Filament\Forms\Components\CheckboxList';
     }
 
     /**

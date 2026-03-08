@@ -35,6 +35,8 @@ final class SchemaCallSitePreScanner
      */
     public function __construct(
         protected readonly bool $enabled,
+        protected readonly string $filamentPath,
+        protected readonly string $currentWorkingDirectory,
         protected readonly array $analysedPaths,
         protected readonly array $analysedPathsFromConfig = [],
     ) {}
@@ -244,7 +246,7 @@ final class SchemaCallSitePreScanner
     protected function discoverPhpFiles(): array
     {
         $files = [];
-        $allPaths = array_unique(array_merge($this->analysedPaths, $this->analysedPathsFromConfig));
+        $allPaths = $this->resolveScanPaths();
 
         foreach ($allPaths as $path) {
             if (is_file($path)) {
@@ -266,5 +268,15 @@ final class SchemaCallSitePreScanner
         }
 
         return $files;
+    }
+
+    /** @return list<string> */
+    protected function resolveScanPaths(): array
+    {
+        if ($this->filamentPath !== '') {
+            return [$this->currentWorkingDirectory.'/'.$this->filamentPath];
+        }
+
+        return array_values(array_unique(array_merge($this->analysedPaths, $this->analysedPathsFromConfig)));
     }
 }

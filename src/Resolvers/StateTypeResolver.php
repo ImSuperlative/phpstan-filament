@@ -35,16 +35,7 @@ final class StateTypeResolver
 
     protected function analyzeMethodChain(MethodCall $methodCall, Scope $scope): ChainAnalysis
     {
-        return $this->chainResolver->resolve(
-            $methodCall->var,
-            $scope,
-            $this->isInherentlyMultiple($scope->getType($methodCall->var)->getObjectClassNames()[0] ?? null),
-        );
-    }
-
-    protected function isInherentlyMultiple(?string $componentClass): bool
-    {
-        return $componentClass === 'Filament\Forms\Components\CheckboxList';
+        return $this->chainResolver->resolve($methodCall->var, $scope);
     }
 
     protected function resolveStateType(ChainAnalysis $analysis, MethodCall $methodCall, Scope $scope, ?string $modelClass): ?Type

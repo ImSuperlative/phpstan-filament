@@ -8,6 +8,7 @@ parametersSchema:
         typeActionRecords: bool()
         typeMacroMethods: bool()
         typeIdeHelper: bool()
+        filamentPath: string()
         ideHelperPath: string()
         checkClosureInjection: bool()
         checkReservedClosureInjection: bool()
@@ -31,6 +32,7 @@ parameters:
         typeActionRecords: true
         typeMacroMethods: true
         typeIdeHelper: true
+        filamentPath: ''
         ideHelperPath: ''
         checkClosureInjection: true
         checkReservedClosureInjection: false
@@ -90,7 +92,7 @@ services:
         class: ImSuperlative\FilamentPhpstan\Collectors\TableQueryRegistry
 
     -
-        class: ImSuperlative\FilamentPhpstan\Collectors\TableQueryCollector
+        class: ImSuperlative\FilamentPhpstan\Extensions\TableQueryExtension
         tags:
             - phpstan.broker.dynamicMethodReturnTypeExtension
 
@@ -103,6 +105,8 @@ services:
         class: ImSuperlative\FilamentPhpstan\Collectors\SchemaCallSitePreScanner
         arguments:
             enabled: %filamentPhpstan.enableSchemaCallSitePreScan%
+            filamentPath: %filamentPhpstan.filamentPath%
+            currentWorkingDirectory: %currentWorkingDirectory%
             analysedPaths: %analysedPaths%
             analysedPathsFromConfig: %analysedPathsFromConfig%
 
@@ -191,5 +195,6 @@ includes:
     - config/action-records.neon
     - config/closure-injection.neon
     - config/redundant-enum.neon
+    - config/panel-ids.neon
     - config/macro.neon
     - config/ide-helper.neon
