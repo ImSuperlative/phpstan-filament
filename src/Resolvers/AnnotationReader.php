@@ -7,108 +7,121 @@ use ImSuperlative\FilamentPhpstan\Data\FilamentModelAnnotation;
 use ImSuperlative\FilamentPhpstan\Data\FilamentPageAnnotation;
 use ImSuperlative\FilamentPhpstan\Data\FilamentStateAnnotation;
 use ImSuperlative\FilamentPhpstan\Data\FilamentTagAnnotation;
-use PHPStan\PhpDocParser\Ast\PhpDoc\GenericTagValueNode;
-use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
-use PHPStan\PhpDocParser\Lexer\Lexer;
-use PHPStan\PhpDocParser\Parser\PhpDocParser;
-use PHPStan\PhpDocParser\Parser\TokenIterator;
-use PHPStan\PhpDocParser\Parser\TypeParser;
+use PHPStan\Reflection\ClassReflection;
 
-final class AnnotationReader
+final class AnnotationReader implements AnnotationParser
 {
     public function __construct(
-        protected readonly Lexer $lexer,
-        protected readonly TypeParser $typeParser,
-        protected readonly PhpDocParser $phpDocParser,
+        protected readonly AttributeAnnotationParser $attributeParser,
+        protected readonly PhpDocAnnotationParser $phpDocParser,
     ) {}
 
-    public function readModelAnnotation(string $phpDoc): ?FilamentModelAnnotation
+    public function readModelAnnotation(ClassReflection $class, ?string $method = null): ?FilamentModelAnnotation
     {
-        return ($this->parseTypedTags($this->tagValues($phpDoc, '@filament-model'))[0] ?? null)
-            ?->toModelAnnotation();
+        return $this->attributeParser->readModelAnnotation($class, $method)
+            ?? $this->readPhpDocModel($class, $method);
     }
 
     /** @return array<FilamentPageAnnotation> */
-    public function readPageAnnotations(string $phpDoc): array
+    public function readPageAnnotations(ClassReflection $class, ?string $method = null): array
     {
-        return array_map(
-            fn (FilamentTagAnnotation $tag) => $tag->toPageAnnotation(),
-            $this->parseTypedTags($this->tagValues($phpDoc, '@filament-page')),
-        );
+        $fromAttributes = $this->attributeParser->readPageAnnotations($class, $method);
+        $fromPhpDoc = $this->readPhpDocPages($class, $method);
+
+        return $this->mergeAnnotations($fromAttributes, $fromPhpDoc);
     }
 
     /** @return array<FilamentStateAnnotation> */
-    public function readStateAnnotations(string $phpDoc): array
+    public function readStateAnnotations(ClassReflection $class, ?string $method = null): array
     {
-        return array_map(
-            fn (FilamentTagAnnotation $tag) => $tag->toStateAnnotation(),
-            $this->parseTypedTags($this->tagValues($phpDoc, '@filament-state')),
-        );
+        $fromAttributes = $this->attributeParser->readStateAnnotations($class, $method);
+        $fromPhpDoc = $this->readPhpDocStates($class, $method);
+
+        return $this->mergeAnnotations($fromAttributes, $fromPhpDoc);
     }
 
     /** @return array<FilamentFieldAnnotation> */
-    public function readFieldAnnotations(string $phpDoc): array
+    public function readFieldAnnotations(ClassReflection $class, ?string $method = null): array
     {
-        return array_map(
-            fn (FilamentTagAnnotation $tag) => $tag->toFieldAnnotation(),
-            $this->parseTypedTags($this->tagValues($phpDoc, '@filament-field')),
-        );
+        $fromAttributes = $this->attributeParser->readFieldAnnotations($class, $method);
+        $fromPhpDoc = $this->readPhpDocFields($class, $method);
+
+        return $this->mergeAnnotations($fromAttributes, $fromPhpDoc);
     }
 
-    protected function parseTypedTag(string $value): FilamentTagAnnotation
+    protected function getPhpDoc(ClassReflection $class, ?string $method): ?string
     {
-        $tokens = $this->tokenize($value);
+        if ($method !== null) {
+            $methodReflection = $class->getNativeReflection()->getMethod($method);
 
-        return new FilamentTagAnnotation(
-            type: $this->typeParser->parse($tokens),
-            fieldName: $this->getOptionalFieldName($tokens),
-        );
+            return $methodReflection->getDocComment() ?: null;
+        }
+
+        return $class->getNativeReflection()->getDocComment() ?: null;
+    }
+
+    protected function readPhpDocModel(ClassReflection $class, ?string $method): ?FilamentModelAnnotation
+    {
+        $phpDoc = $this->getPhpDoc($class, $method);
+
+        return $phpDoc !== null ? $this->phpDocParser->readModelAnnotation($phpDoc) : null;
+    }
+
+    /** @return array<FilamentPageAnnotation> */
+    protected function readPhpDocPages(ClassReflection $class, ?string $method): array
+    {
+        $phpDoc = $this->getPhpDoc($class, $method);
+
+        return $phpDoc !== null ? $this->phpDocParser->readPageAnnotations($phpDoc) : [];
+    }
+
+    /** @return array<FilamentStateAnnotation> */
+    protected function readPhpDocStates(ClassReflection $class, ?string $method): array
+    {
+        $phpDoc = $this->getPhpDoc($class, $method);
+
+        return $phpDoc !== null ? $this->phpDocParser->readStateAnnotations($phpDoc) : [];
+    }
+
+    /** @return array<FilamentFieldAnnotation> */
+    protected function readPhpDocFields(ClassReflection $class, ?string $method): array
+    {
+        $phpDoc = $this->getPhpDoc($class, $method);
+
+        return $phpDoc !== null ? $this->phpDocParser->readFieldAnnotations($phpDoc) : [];
     }
 
     /**
-     * @param  list<string>  $values
-     * @return array<FilamentTagAnnotation>
+     * @template T of FilamentTagAnnotation
+     *
+     * @param  array<T>  $fromAttributes
+     * @param  array<T>  $fromPhpDoc
+     * @return array<T>
      */
-    protected function parseTypedTags(array $values): array
+    protected function mergeAnnotations(array $fromAttributes, array $fromPhpDoc): array
     {
-        return array_map(
-            fn (string $value) => $this->parseTypedTag($value),
-            $values,
-        );
-    }
+        if ($fromPhpDoc === []) {
+            return $fromAttributes;
+        }
 
-    protected function tokenize(string $value): TokenIterator
-    {
-        return new TokenIterator($this->lexer->tokenize($value));
-    }
+        if ($fromAttributes === []) {
+            return $fromPhpDoc;
+        }
 
-    protected function getOptionalFieldName(TokenIterator $tokens): ?string
-    {
-        $remaining = trim($tokens->currentTokenValue());
+        $seen = [];
+        foreach ($fromAttributes as $annotation) {
+            $seen[] = $annotation->typeAsString().'::'.($annotation->fieldName ?? '*');
+        }
 
-        return ($remaining === '' || $remaining === '*') ? null : $remaining;
-    }
+        $merged = $fromAttributes;
+        foreach ($fromPhpDoc as $annotation) {
+            $key = $annotation->typeAsString().'::'.($annotation->fieldName ?? '*');
+            if (! in_array($key, $seen, true)) {
+                $merged[] = $annotation;
+                $seen[] = $key;
+            }
+        }
 
-    /**
-     * @return list<string>
-     */
-    protected function tagValues(string $phpDoc, string $tagName): array
-    {
-        /** @var list<string> */
-        return array_reduce(
-            $this->parse($phpDoc)->getTagsByName($tagName),
-            static function (array $carry, $tag) {
-                if ($tag->value instanceof GenericTagValueNode && trim($tag->value->value) !== '') {
-                    $carry[] = trim($tag->value->value);
-                }
-
-                return $carry;
-            }, []
-        );
-    }
-
-    protected function parse(string $phpDoc): PhpDocNode
-    {
-        return $this->phpDocParser->parse($this->tokenize($phpDoc));
+        return $merged;
     }
 }

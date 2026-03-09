@@ -4,10 +4,14 @@ namespace ImSuperlative\FilamentPhpstan\Support;
 
 use ImSuperlative\FilamentPhpstan\Data\ChainWalkResult;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\Array_;
+use PhpParser\Node\Expr\ArrowFunction;
+use PhpParser\Node\Expr\Closure;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Scalar\String_;
+use PhpParser\Node\Stmt\Return_;
 use PHPStan\Analyser\Scope;
 
 final class AstHelper
@@ -123,6 +127,33 @@ final class AstHelper
             methodNames: $methodNames,
             fieldName: self::extractMakeName($current),
         );
+    }
+
+    /**
+     * Resolve the array from a ->schema() or ->components() call argument,
+     * handling direct arrays, arrow functions, and single-return closures.
+     */
+    public static function resolveSchemaArray(StaticCall|MethodCall $call): ?Array_
+    {
+        $arg = self::firstArgValue($call);
+
+        if ($arg instanceof Array_) {
+            return $arg;
+        }
+
+        if ($arg instanceof ArrowFunction && $arg->expr instanceof Array_) {
+            return $arg->expr;
+        }
+
+        if ($arg instanceof Closure && count($arg->stmts) === 1) {
+            $stmt = $arg->stmts[0];
+
+            if ($stmt instanceof Return_ && $stmt->expr instanceof Array_) {
+                return $stmt->expr;
+            }
+        }
+
+        return null;
     }
 
     /** @phpstan-assert-if-true StaticCall $expr */

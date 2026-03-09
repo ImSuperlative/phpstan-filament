@@ -2,17 +2,20 @@
 
 namespace ImSuperlative\FilamentPhpstan\Support;
 
+use PHPStan\Analyser\OutOfClassScope;
 use PHPStan\Analyser\Scope;
+use PHPStan\Reflection\ClassMemberAccessAnswerer;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ObjectType;
+use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 
 final class ModelReflectionHelper
 {
-    private const string RELATION_BASE = 'Illuminate\Database\Eloquent\Relations\Relation';
+    public const string RELATION_BASE = 'Illuminate\Database\Eloquent\Relations\Relation';
 
-    private const string MODEL_BASE = 'Illuminate\Database\Eloquent\Model';
+    public const string MODEL_BASE = 'Illuminate\Database\Eloquent\Model';
 
     public function __construct(
         protected ReflectionProvider $reflectionProvider,
@@ -23,7 +26,7 @@ final class ModelReflectionHelper
      * exists but doesn't return a Relation, or null if the class can't
      * be resolved or the method doesn't exist (benefit of the doubt).
      *
-     * Checks: 1) method-based (definitive), 2) @property-read /Model-type (heuristic).
+     * Checks: 1) method-based (definitive), 2) @/property-read /Model-type (heuristic).
      * Also checks the plural form of the method name, since Filament
      * resolves both singular and plural relationship names in dot-notation.
      */
@@ -71,24 +74,18 @@ final class ModelReflectionHelper
 
     /**
      * Resolve the object class name of a property's type.
-     * e.g. Post has @property /EventOption|null $options → "EventOption"
+     * e.g. Post has @/property EventOption|null $options → "EventOption"
      * e.g. Data object has public ?FormOptionMail $mail → "FormOptionMail"
      */
     public function resolvePropertyObjectType(string $className, string $propertyName, Scope $scope): ?string
     {
-        if (! $this->reflectionProvider->hasClass($className)) {
+        $type = $this->getPropertyType($className, $propertyName, $scope);
+
+        if ($type === null) {
             return null;
         }
 
-        $classReflection = $this->reflectionProvider->getClass($className);
-        if (! $classReflection->hasInstanceProperty($propertyName)) {
-            return null;
-        }
-
-        $type = $classReflection->getInstanceProperty($propertyName, $scope)->getReadableType();
-        $classNames = TypeCombinator::removeNull($type)->getObjectClassNames();
-
-        return $classNames[0] ?? null;
+        return TypeCombinator::removeNull($type)->getObjectClassNames()[0] ?? null;
     }
 
     /**
@@ -97,21 +94,30 @@ final class ModelReflectionHelper
      */
     public function resolveCollectionItemType(string $className, string $propertyName, Scope $scope): ?string
     {
+        $type = $this->getPropertyType($className, $propertyName, $scope);
+
+        if ($type === null) {
+            return null;
+        }
+
+        $itemType = TypeCombinator::removeNull($type)->getIterableValueType();
+
+        return $itemType->getObjectClassNames()[0] ?? null;
+    }
+
+    protected function getPropertyType(string $className, string $propertyName, ClassMemberAccessAnswerer $scope): ?Type
+    {
         if (! $this->reflectionProvider->hasClass($className)) {
             return null;
         }
 
         $classReflection = $this->reflectionProvider->getClass($className);
+
         if (! $classReflection->hasInstanceProperty($propertyName)) {
             return null;
         }
 
-        $type = $classReflection->getInstanceProperty($propertyName, $scope)->getReadableType();
-        $type = TypeCombinator::removeNull($type);
-        $iterableValueType = $type->getIterableValueType();
-        $classNames = $iterableValueType->getObjectClassNames();
-
-        return $classNames[0] ?? null;
+        return $classReflection->getInstanceProperty($propertyName, $scope)->getReadableType();
     }
 
     public function hasMethod(string $modelClass, string $methodName): bool
@@ -124,9 +130,23 @@ final class ModelReflectionHelper
      * Resolve the related model class from a relation method's generic return type.
      * e.g. Post::comments() returns HasMany<Comment, $this> → "Comment"
      *
-     * Falls back to @property-read /Model-type detection for users without typed methods.
+     * Falls back to @/property-read /Model-type detection for users without typed methods.
      */
     public function resolveRelatedModel(string $modelClass, string $methodName, Scope $scope): ?string
+    {
+        return $this->doResolveRelatedModel($modelClass, $methodName, $scope);
+    }
+
+    /**
+     * Scope-free variant for use during scanning (e.g. VirtualAnnotationProvider).
+     * Uses OutOfClassScope — works for public relationship methods.
+     */
+    public function resolveRelatedModelStatically(string $modelClass, string $methodName): ?string
+    {
+        return $this->doResolveRelatedModel($modelClass, $methodName, new OutOfClassScope);
+    }
+
+    protected function doResolveRelatedModel(string $modelClass, string $methodName, ClassMemberAccessAnswerer $scope): ?string
     {
         if (! $this->reflectionProvider->hasClass($modelClass)) {
             return null;
@@ -159,7 +179,7 @@ final class ModelReflectionHelper
         return $this->resolvePropertyModelType($classReflection, $methodName, $scope);
     }
 
-    protected function methodReturnsRelation(ClassReflection $classReflection, string $methodName, Scope $scope): bool
+    protected function methodReturnsRelation(ClassReflection $classReflection, string $methodName, ClassMemberAccessAnswerer $scope): bool
     {
         $returnType = $classReflection->getMethod($methodName, $scope)
             ->getVariants()[0]
@@ -170,26 +190,18 @@ final class ModelReflectionHelper
     }
 
     /**
-     * Check if a property's type is a Model subclass (e.g. @property-read /Author|null $author).
+     * Check if a property's type is a Model subclass (e.g. @/property-read Author|null $author).
      */
-    protected function propertyIsModelType(ClassReflection $classReflection, string $propertyName, Scope $scope): bool
+    protected function propertyIsModelType(ClassReflection $classReflection, string $propertyName, ClassMemberAccessAnswerer $scope): bool
     {
-        if (! $classReflection->hasInstanceProperty($propertyName)) {
-            return false;
-        }
-
-        $type = TypeCombinator::removeNull(
-            $classReflection->getInstanceProperty($propertyName, $scope)->getReadableType()
-        );
-
-        return new ObjectType(self::MODEL_BASE)->isSuperTypeOf($type)->yes();
+        return $this->resolvePropertyModelType($classReflection, $propertyName, $scope) !== null;
     }
 
     /**
-     * Resolve the model class from a @property-read /type.
-     * e.g. @property-read /Author|null $reviewer → "Author"
+     * Resolve the model class from a @/property-read type.
+     * e.g. @/property-read Author|null $reviewer → "Author"
      */
-    protected function resolvePropertyModelType(ClassReflection $classReflection, string $propertyName, Scope $scope): ?string
+    protected function resolvePropertyModelType(ClassReflection $classReflection, string $propertyName, ClassMemberAccessAnswerer $scope): ?string
     {
         if (! $classReflection->hasInstanceProperty($propertyName)) {
             return null;
@@ -199,7 +211,7 @@ final class ModelReflectionHelper
             $classReflection->getInstanceProperty($propertyName, $scope)->getReadableType()
         );
 
-        if (! new ObjectType(self::MODEL_BASE)->isSuperTypeOf($type)->yes()) {
+        if (! $this->isModelSubclass($type)) {
             return null;
         }
 
@@ -210,5 +222,10 @@ final class ModelReflectionHelper
         }
 
         return $classNames[0];
+    }
+
+    protected function isModelSubclass(Type $type): bool
+    {
+        return new ObjectType(self::MODEL_BASE)->isSuperTypeOf($type)->yes();
     }
 }

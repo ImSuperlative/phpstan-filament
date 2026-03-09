@@ -7,6 +7,8 @@ use Filament\Schemas\Components\Group;
 use Fixtures\App\Models\Email;
 
 /**
+ * @filament-model \Fixtures\App\Models\Post
+ *
  * @filament-field Email latestSubmissionEmail
  */
 class AnnotatedHelper

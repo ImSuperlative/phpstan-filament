@@ -8,6 +8,7 @@ use PHPStan\Type\Generic\GenericObjectType;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 
 final class ActionRecordsHandler implements ClosureParameterHandler
 {
@@ -21,20 +22,24 @@ final class ActionRecordsHandler implements ClosureParameterHandler
             return null;
         }
 
-        return new GenericObjectType(
-            'Illuminate\Database\Eloquent\Collection',
-            [
-                new IntegerType,
-                new ObjectType($context->modelClass),
-            ],
+        return TypeCombinator::union(
+            ...array_map(
+                fn (string $class) => new GenericObjectType(
+                    'Illuminate\Database\Eloquent\Collection',
+                    [
+                        new IntegerType,
+                        new ObjectType($class),
+                    ],
+                ),
+                $context->modelClasses,
+            ),
         );
     }
 
-    /** @phpstan-assert-if-true !null $context->modelClass */
     protected function shouldResolveType(string $paramName, ClosureHandlerContext $context): bool
     {
         return $this->actionRecords
-            && $context->modelClass !== null
+            && $context->modelClasses !== []
             && ($paramName === 'records' || $paramName === 'selectedRecords');
     }
 }

@@ -3,13 +3,9 @@
 use ImSuperlative\FilamentPhpstan\Data\IdeHelperMethodData;
 use ImSuperlative\FilamentPhpstan\Data\IdeHelperModelData;
 use ImSuperlative\FilamentPhpstan\Extensions\IdeHelper\IdeHelperMethodsExtension;
+use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
 use ImSuperlative\FilamentPhpstan\Support\IdeHelperModelParser;
 use ImSuperlative\FilamentPhpstan\Support\IdeHelperRegistry;
-use PHPStan\PhpDocParser\Lexer\Lexer;
-use PHPStan\PhpDocParser\Parser\ConstExprParser;
-use PHPStan\PhpDocParser\Parser\PhpDocParser;
-use PHPStan\PhpDocParser\Parser\TypeParser;
-use PHPStan\PhpDocParser\ParserConfig;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 use PHPStan\Type\ObjectType;
@@ -19,13 +15,9 @@ beforeEach(function () {
     /** @var \PHPStan\Parser\Parser $parser */
     $parser = PHPStanTestCase::getContainer()->getService('defaultAnalysisParser');
 
-    $config = new ParserConfig(usedAttributes: []);
-    $lexer = new Lexer($config);
-    $constExprParser = new ConstExprParser($config);
-    $typeParser = new TypeParser($config, $constExprParser);
-    $phpDocParser = new PhpDocParser($config, $typeParser, $constExprParser);
+    $typeStringParser = TypeStringParser::make();
 
-    $modelParser = new IdeHelperModelParser($parser, $lexer, $phpDocParser);
+    $modelParser = new IdeHelperModelParser($parser, $typeStringParser->getLexer(), $typeStringParser->getPhpDocParser());
 
     // Use manual registration — barryvdh only has native Model methods
     $this->registry = new IdeHelperRegistry($modelParser, true, '', __DIR__);

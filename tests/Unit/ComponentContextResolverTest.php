@@ -2,23 +2,19 @@
 
 // tests/Unit/ComponentContextResolverTest.php
 
-use ImSuperlative\FilamentPhpstan\Collectors\CustomComponentRegistry;
-use ImSuperlative\FilamentPhpstan\Collectors\SchemaCallSiteRegistry;
-use ImSuperlative\FilamentPhpstan\Collectors\TableQueryRegistry;
 use ImSuperlative\FilamentPhpstan\Data\FilamentContext;
+use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
 use ImSuperlative\FilamentPhpstan\Resolvers\AnnotationReader;
+use ImSuperlative\FilamentPhpstan\Resolvers\AttributeAnnotationParser;
 use ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver;
+use ImSuperlative\FilamentPhpstan\Resolvers\PhpDocAnnotationParser;
 use ImSuperlative\FilamentPhpstan\Resolvers\ResourceModelResolver;
+use ImSuperlative\FilamentPhpstan\Resolvers\VirtualAnnotationProvider;
 use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
 use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
 use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestEditPage;
 use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestModel;
 use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestResource;
-use PHPStan\PhpDocParser\Lexer\Lexer;
-use PHPStan\PhpDocParser\Parser\ConstExprParser;
-use PHPStan\PhpDocParser\Parser\PhpDocParser;
-use PHPStan\PhpDocParser\Parser\TypeParser;
-use PHPStan\PhpDocParser\ParserConfig;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 
@@ -26,21 +22,30 @@ beforeEach(function () {
     $reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
     $filamentClassHelper = new FilamentClassHelper($reflectionProvider);
 
-    $config = new ParserConfig(usedAttributes: []);
-    $lexer = new Lexer($config);
-    $constExprParser = new ConstExprParser($config);
-    $typeParser = new TypeParser($config, $constExprParser);
-    $phpDocParser = new PhpDocParser($config, $typeParser, $constExprParser);
+    $typeStringParser = TypeStringParser::make();
+
+    $modelReflectionHelper = new ModelReflectionHelper($reflectionProvider);
+    $resourceModelResolver = new ResourceModelResolver($reflectionProvider, $filamentClassHelper, $modelReflectionHelper);
+
+    $annotationReader = new AnnotationReader(
+        new AttributeAnnotationParser($typeStringParser),
+        new PhpDocAnnotationParser($typeStringParser),
+    );
 
     $this->resolver = new ComponentContextResolver(
         $filamentClassHelper,
-        new ResourceModelResolver($reflectionProvider, $filamentClassHelper),
-        new AnnotationReader($lexer, $typeParser, $phpDocParser),
-        new TableQueryRegistry,
+        $resourceModelResolver,
+        $annotationReader,
         $reflectionProvider,
         new ModelReflectionHelper($reflectionProvider),
-        new CustomComponentRegistry,
-        new SchemaCallSiteRegistry,
+        new VirtualAnnotationProvider(
+            enabled: false,
+            filamentPath: '',
+            currentWorkingDirectory: '',
+            analysedPaths: [],
+            analysedPathsFromConfig: [],
+            resourceModelResolver: $resourceModelResolver,
+        ),
     );
 });
 

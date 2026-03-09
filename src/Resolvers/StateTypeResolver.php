@@ -5,7 +5,6 @@
 namespace ImSuperlative\FilamentPhpstan\Resolvers;
 
 use ImSuperlative\FilamentPhpstan\Data\ChainAnalysis;
-use ImSuperlative\FilamentPhpstan\Parser\StatePathPrefixVisitor;
 use ImSuperlative\FilamentPhpstan\Support\AstHelper;
 use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
 use PhpParser\Node\Expr\MethodCall;
@@ -21,7 +20,6 @@ final class StateTypeResolver
         protected readonly FormComponentChainResolver $chainResolver,
         protected readonly ReflectionProvider $reflectionProvider,
         protected readonly FilamentClassHelper $filamentClassHelper,
-        protected readonly StatePathPrefixVisitor $statePathPrefixVisitor,
         protected readonly FieldPathResolver $fieldPathResolver,
         protected readonly int $makeFieldValidation = 0,
     ) {}
@@ -59,7 +57,7 @@ final class StateTypeResolver
             return null;
         }
 
-        $prefix = $this->resolveStatePathPrefix($methodCall, $scope);
+        $prefix = $this->resolveStatePathPrefix($methodCall);
         $fullFieldName = $prefix !== null
             ? $prefix.'.'.$analysis->fieldName
             : $analysis->fieldName;
@@ -71,14 +69,9 @@ final class StateTypeResolver
         return $this->fieldPathResolver->resolve($fullFieldName, $modelClass, $scope)->leafType();
     }
 
-    protected function resolveStatePathPrefix(MethodCall $methodCall, Scope $scope): ?string
+    protected function resolveStatePathPrefix(MethodCall $methodCall): ?string
     {
-        $root = AstHelper::methodChainRoot($methodCall->var);
-        $line = $root->getStartLine();
-
-        return $line > 0
-            ? $this->statePathPrefixVisitor->lookupPrefix($scope->getFile(), $line)
-            : null;
+        return AstHelper::methodChainRoot($methodCall->var)->getAttribute('filament.statePrefix');
     }
 
     /**

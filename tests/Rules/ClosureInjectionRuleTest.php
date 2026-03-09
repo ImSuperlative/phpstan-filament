@@ -1,30 +1,24 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Collectors\CustomComponentRegistry;
-use ImSuperlative\FilamentPhpstan\Collectors\SchemaCallSiteRegistry;
-use ImSuperlative\FilamentPhpstan\Collectors\TableQueryRegistry;
-use ImSuperlative\FilamentPhpstan\Parser\StatePathPrefixVisitor;
+use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
 use ImSuperlative\FilamentPhpstan\Resolvers\AnnotationReader;
+use ImSuperlative\FilamentPhpstan\Resolvers\AttributeAnnotationParser;
 use ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver;
 use ImSuperlative\FilamentPhpstan\Resolvers\FieldPathResolver;
 use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentChainResolver;
 use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentStateMap;
 use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentTypeNarrower;
 use ImSuperlative\FilamentPhpstan\Resolvers\FormOptionsNarrower;
+use ImSuperlative\FilamentPhpstan\Resolvers\PhpDocAnnotationParser;
 use ImSuperlative\FilamentPhpstan\Resolvers\ResourceModelResolver;
 use ImSuperlative\FilamentPhpstan\Resolvers\StateTypeResolver;
+use ImSuperlative\FilamentPhpstan\Resolvers\VirtualAnnotationProvider;
 use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\ClosureInjectionRule;
 use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\InjectionMapFactory;
 use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\VendorAstParser;
 use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
 use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
 use ImSuperlative\FilamentPhpstan\Tests\ConfigurableRuleTestCase;
-use PHPStan\Parser\Parser;
-use PHPStan\PhpDocParser\Lexer\Lexer;
-use PHPStan\PhpDocParser\Parser\ConstExprParser;
-use PHPStan\PhpDocParser\Parser\PhpDocParser;
-use PHPStan\PhpDocParser\Parser\TypeParser;
-use PHPStan\PhpDocParser\ParserConfig;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 
@@ -33,23 +27,18 @@ function makeTestDependencies(): array
     $reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
     $filamentClassHelper = new FilamentClassHelper($reflectionProvider);
 
-    $config = new ParserConfig(usedAttributes: []);
-    $lexer = new Lexer($config);
-    $constExprParser = new ConstExprParser($config);
-    $typeParser = new TypeParser($config, $constExprParser);
-    $phpDocParser = new PhpDocParser($config, $typeParser, $constExprParser);
-    $annotationReader = new AnnotationReader($lexer, $typeParser, $phpDocParser);
+    $typeStringParser = TypeStringParser::make();
+    $annotationReader = new AnnotationReader(
+        new AttributeAnnotationParser($typeStringParser),
+        new PhpDocAnnotationParser($typeStringParser),
+    );
 
-    $tableQueryRegistry = new TableQueryRegistry;
     $componentStateMap = new FormComponentStateMap($reflectionProvider);
     $stateNarrower = new FormComponentTypeNarrower($reflectionProvider, new FormOptionsNarrower);
 
     $modelReflectionHelper = new ModelReflectionHelper($reflectionProvider);
 
     /** @var Parser $parser */
-    $parser = PHPStanTestCase::getContainer()->getService('defaultAnalysisParser');
-    $statePathPrefixVisitor = new StatePathPrefixVisitor($parser);
-
     $fieldPathResolver = new FieldPathResolver(
         $modelReflectionHelper,
         $reflectionProvider,
@@ -63,20 +52,26 @@ function makeTestDependencies(): array
         $chainResolver,
         $reflectionProvider,
         $filamentClassHelper,
-        $statePathPrefixVisitor,
         $fieldPathResolver,
         makeFieldValidation: 3,
     );
 
+    $resourceModelResolver = new ResourceModelResolver($reflectionProvider, $filamentClassHelper, $modelReflectionHelper);
+
     $componentContextResolver = new ComponentContextResolver(
         $filamentClassHelper,
-        new ResourceModelResolver($reflectionProvider, $filamentClassHelper),
+        $resourceModelResolver,
         $annotationReader,
-        $tableQueryRegistry,
         $reflectionProvider,
         $modelReflectionHelper,
-        new CustomComponentRegistry,
-        new SchemaCallSiteRegistry,
+        new VirtualAnnotationProvider(
+            enabled: false,
+            filamentPath: '',
+            currentWorkingDirectory: '',
+            analysedPaths: [],
+            analysedPathsFromConfig: [],
+            resourceModelResolver: $resourceModelResolver,
+        ),
     );
 
     return [

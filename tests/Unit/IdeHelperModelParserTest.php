@@ -1,14 +1,9 @@
 <?php
 
+use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
 use ImSuperlative\FilamentPhpstan\Support\IdeHelperModelParser;
 use PHPStan\Parser\Parser;
-use PHPStan\PhpDocParser\Lexer\Lexer;
-use PHPStan\PhpDocParser\Parser\ConstExprParser;
-use PHPStan\PhpDocParser\Parser\PhpDocParser;
-use PHPStan\PhpDocParser\Parser\TypeParser;
-use PHPStan\PhpDocParser\ParserConfig;
 use PHPStan\Testing\PHPStanTestCase;
-use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 use PHPStan\Type\VerbosityLevel;
 
@@ -16,13 +11,9 @@ beforeEach(function () {
     /** @var Parser $parser */
     $parser = PHPStanTestCase::getContainer()->getService('defaultAnalysisParser');
 
-    $config = new ParserConfig(usedAttributes: []);
-    $lexer = new Lexer($config);
-    $constExprParser = new ConstExprParser($config);
-    $typeParser = new TypeParser($config, $constExprParser);
-    $phpDocParser = new PhpDocParser($config, $typeParser, $constExprParser);
+    $typeStringParser = TypeStringParser::make();
 
-    $this->parser = new IdeHelperModelParser($parser, $lexer, $phpDocParser);
+    $this->parser = new IdeHelperModelParser($parser, $typeStringParser->getLexer(), $typeStringParser->getPhpDocParser());
 });
 
 function describeType(Type $type): string

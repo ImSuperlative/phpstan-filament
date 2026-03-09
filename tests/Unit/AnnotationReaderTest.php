@@ -1,23 +1,15 @@
 <?php
 
-// tests/Unit/AnnotationReaderTest.php
+// tests/Unit/PhpDocAnnotationParserTest.php
 
 use ImSuperlative\FilamentPhpstan\Data\FilamentModelAnnotation;
-use ImSuperlative\FilamentPhpstan\Resolvers\AnnotationReader;
-use PHPStan\PhpDocParser\Lexer\Lexer;
-use PHPStan\PhpDocParser\Parser\ConstExprParser;
-use PHPStan\PhpDocParser\Parser\PhpDocParser;
-use PHPStan\PhpDocParser\Parser\TypeParser;
-use PHPStan\PhpDocParser\ParserConfig;
+use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
+use ImSuperlative\FilamentPhpstan\Resolvers\PhpDocAnnotationParser;
 
 beforeEach(function () {
-    $config = new ParserConfig(usedAttributes: []);
-    $lexer = new Lexer($config);
-    $constExprParser = new ConstExprParser($config);
-    $typeParser = new TypeParser($config, $constExprParser);
-    $phpDocParser = new PhpDocParser($config, $typeParser, $constExprParser);
+    $typeStringParser = TypeStringParser::make();
 
-    $this->reader = new AnnotationReader($lexer, $typeParser, $phpDocParser);
+    $this->reader = new PhpDocAnnotationParser($typeStringParser);
 });
 
 it('parses @filament-model from a PHPDoc string', function () {
@@ -101,4 +93,60 @@ it('returns null fieldName for @filament-field without field name', function () 
 it('returns empty array when no @filament-field annotations', function () {
     $result = $this->reader->readFieldAnnotations('/** @filament-model Post */');
     expect($result)->toBe([]);
+});
+
+it('parses @filament-page with generic model syntax', function () {
+    $phpDoc = '/** @filament-page EditPost<Post> */';
+
+    $annotations = $this->reader->readPageAnnotations($phpDoc);
+
+    expect($annotations)->toHaveCount(1);
+
+    $annotation = $annotations[0];
+    expect((string) $annotation->pageType())->toBe('EditPost')
+        ->and($annotation->modelType())->not->toBeNull()
+        ->and((string) $annotation->modelType())->toBe('Post');
+});
+
+it('parses @filament-page without generic as page-only', function () {
+    $phpDoc = '/** @filament-page EditPost */';
+
+    $annotations = $this->reader->readPageAnnotations($phpDoc);
+
+    expect($annotations)->toHaveCount(1);
+
+    $annotation = $annotations[0];
+    expect((string) $annotation->pageType())->toBe('EditPost')
+        ->and($annotation->modelType())->toBeNull();
+});
+
+it('parses @filament-page union without generic', function () {
+    $phpDoc = '/** @filament-page EditPost|CreatePost */';
+
+    $annotations = $this->reader->readPageAnnotations($phpDoc);
+
+    expect($annotations)->toHaveCount(1);
+
+    $annotation = $annotations[0];
+    expect($annotation->pageTypes())->toHaveCount(2)
+        ->and((string) $annotation->pageTypes()[0])->toBe('EditPost')
+        ->and((string) $annotation->pageTypes()[1])->toBe('CreatePost')
+        ->and($annotation->modelType())->toBeNull();
+});
+
+it('parses multiple @filament-page tags with generics', function () {
+    $phpDoc = <<<'DOC'
+    /**
+     * @filament-page EditPost<Post>
+     * @filament-page CreatePost<Post>
+     */
+    DOC;
+
+    $annotations = $this->reader->readPageAnnotations($phpDoc);
+
+    expect($annotations)->toHaveCount(2)
+        ->and((string) $annotations[0]->pageType())->toBe('EditPost')
+        ->and((string) $annotations[0]->modelType())->toBe('Post')
+        ->and((string) $annotations[1]->pageType())->toBe('CreatePost')
+        ->and((string) $annotations[1]->modelType())->toBe('Post');
 });

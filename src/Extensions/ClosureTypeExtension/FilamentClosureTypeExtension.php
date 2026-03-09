@@ -55,14 +55,14 @@ class FilamentClosureTypeExtension implements MethodParameterClosureTypeExtensio
         }
 
         $declaringClass = $methodReflection->getDeclaringClass()->getName();
-        $modelClass = $this->resolveModelClass($scope);
+        $modelClasses = $this->componentContextResolver->resolveModelClassesFromScope($scope);
         $callerClasses = $scope->getType($methodCall->var)->getObjectClassNames();
         $callerClass = $callerClasses[0] ?? null;
 
         $context = new ClosureHandlerContext(
             scope: $scope,
             methodCall: $methodCall,
-            modelClass: $modelClass,
+            modelClasses: $modelClasses,
             callerClass: $callerClass,
             declaringClass: $declaringClass,
         );
@@ -137,32 +137,31 @@ class FilamentClosureTypeExtension implements MethodParameterClosureTypeExtensio
         $result = [];
 
         foreach ($params as $param) {
-            if (! $param->var instanceof Variable || ! is_string($param->var->name)) {
+            if (! $param->var instanceof Variable || ! is_string($name = $param->var->name)) {
                 continue;
             }
-            // assert($param->var instanceof Variable && is_string($param->var->name));
 
-            $resolvedType = $this->resolveTypeForParam($param, $context);
+            $resolvedType = $this->resolveTypeForParam($name, $param->type !== null, $context);
             $changed = $changed || $resolvedType !== null;
-            $result[] = $this->buildParamReflection($param, $resolvedType, $context->scope);
+            $result[] = $this->buildParamReflection($name, $param, $resolvedType, $context->scope);
         }
 
         return $changed ? new ClosureType($result, new MixedType) : null;
     }
 
-    protected function buildParamReflection(Param $param, ?Type $resolvedType, Scope $scope): SimpleParameterReflection
+    protected function buildParamReflection(string $name, Param $param, ?Type $resolvedType, Scope $scope): SimpleParameterReflection
     {
         return new SimpleParameterReflection(
-            name: $param->var->name,
+            name: $name,
             type: $resolvedType ?? ($param->type !== null ? $scope->getFunctionType($param->type, false, false) : new MixedType),
             optional: $param->default !== null,
             variadic: $param->variadic,
         );
     }
 
-    protected function resolveTypeForParam(Param $param, ClosureHandlerContext $context): ?Type
+    protected function resolveTypeForParam(string $name, bool $hasTypeHint, ClosureHandlerContext $context): ?Type
     {
-        return $this->resolveParamType($param->var->name, $param->type !== null, $context);
+        return $this->resolveParamType($name, $hasTypeHint, $context);
     }
 
     protected function resolveParamType(string $paramName, bool $hasTypeHint, ClosureHandlerContext $context): ?Type
@@ -191,10 +190,5 @@ class FilamentClosureTypeExtension implements MethodParameterClosureTypeExtensio
     protected function getInjectionMap(): TypedInjectionMap
     {
         return $this->injectionMap ??= $this->injectionMapFactory->create();
-    }
-
-    protected function resolveModelClass(Scope $scope): ?string
-    {
-        return $this->componentContextResolver->resolveModelClassFromScope($scope);
     }
 }

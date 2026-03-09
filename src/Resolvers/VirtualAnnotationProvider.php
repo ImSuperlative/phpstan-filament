@@ -1,7 +1,8 @@
 <?php
 
-namespace ImSuperlative\FilamentPhpstan\Collectors;
+namespace ImSuperlative\FilamentPhpstan\Resolvers;
 
+use ImSuperlative\FilamentPhpstan\Data\FilamentPageAnnotation;
 use ImSuperlative\FilamentPhpstan\Support\NamespaceHelper;
 use PhpParser\Node;
 use PhpParser\Node\Expr\StaticCall;
@@ -10,24 +11,18 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\NodeFinder;
 use PhpParser\ParserFactory;
+use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use Symfony\Component\Finder\Finder;
 
-/**
- * Pre-scans project files at first access to find:
- * 1. Foo::configure($schema) call sites (schema → caller mapping)
- * 2. Non-Filament ::make() calls in those same files (custom component → caller mapping)
- *
- * Returns caller mappings that the SchemaCallSiteRegistry can consume,
- * eliminating the collector ordering problem.
- */
-final class SchemaCallSitePreScanner
+final class VirtualAnnotationProvider
 {
     protected const array FILAMENT_PREFIXES = [
         'Filament\\',
     ];
 
-    /** @var array<string, list<string>>|null schemaClass => callerClasses */
-    protected ?array $callers = null;
+    /** @var array<string, list<FilamentPageAnnotation>>|null className => annotations */
+    protected ?array $annotations = null;
 
     /**
      * @param  list<string>  $analysedPaths
@@ -38,27 +33,86 @@ final class SchemaCallSitePreScanner
         protected readonly string $filamentPath,
         protected readonly string $currentWorkingDirectory,
         protected readonly array $analysedPaths,
-        protected readonly array $analysedPathsFromConfig = [],
+        protected readonly array $analysedPathsFromConfig,
+        protected readonly ResourceModelResolver $resourceModelResolver,
     ) {}
 
     /**
-     * @return array<string, list<string>> schemaClass => callerClasses
+     * Get virtual page annotations for a class.
+     *
+     * @return list<FilamentPageAnnotation>
      */
-    public function getCallerMap(): array
+    public function getPageAnnotations(string $className): array
     {
         if (! $this->enabled) {
             return [];
         }
 
-        $this->callers ??= $this->scan();
+        $this->annotations ??= $this->scan();
 
-        return $this->callers;
+        return $this->annotations[$className] ?? [];
     }
 
     /**
-     * @return array<string, list<string>>
+     * @return array<string, list<FilamentPageAnnotation>>
      */
     protected function scan(): array
+    {
+        $callerMap = $this->buildCallerMap();
+        $callerMap = $this->flattenCallerMap($callerMap);
+
+        return $this->buildAnnotations($callerMap);
+    }
+
+    /**
+     * Transitively expand the caller map so that indirect callers become direct callers.
+     *
+     * @param  array<string, list<string>>  $callerMap
+     * @return array<string, list<string>>
+     */
+    protected function flattenCallerMap(array $callerMap): array
+    {
+        $flattened = [];
+
+        foreach ($callerMap as $target => $callers) {
+            $flattened[$target] = $this->collectTransitiveCallers($target, $callerMap, []);
+        }
+
+        return $flattened;
+    }
+
+    /**
+     * @param  array<string, list<string>>  $callerMap
+     * @param  list<string>  $visited
+     * @return list<string>
+     */
+    protected function collectTransitiveCallers(string $target, array $callerMap, array $visited): array
+    {
+        $result = [];
+
+        foreach ($callerMap[$target] ?? [] as $caller) {
+            if (in_array($caller, $visited, true)) {
+                continue;
+            }
+
+            $result[] = $caller;
+
+            foreach ($this->collectTransitiveCallers($caller, $callerMap, [...$visited, $caller]) as $transitive) {
+                if (! in_array($transitive, $result, true)) {
+                    $result[] = $transitive;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Build caller map: target class => list of caller classes.
+     *
+     * @return array<string, list<string>>
+     */
+    protected function buildCallerMap(): array
     {
         $callers = [];
         $parser = (new ParserFactory)->createForNewestSupportedVersion();
@@ -70,12 +124,11 @@ final class SchemaCallSitePreScanner
                 continue;
             }
 
-            // Pre-filter: resource pages call ::configure(), schema classes define configure(Schema)
-            $hasConfigure = str_contains($code, '::configure(');
-            $hasSchemaMethod = str_contains($code, 'function configure(Schema')
+            $hasConfigureCall = str_contains($code, '::configure(');
+            $hasConfigureMethodDefinition = str_contains($code, 'function configure(Schema')
                 || str_contains($code, 'function configure(Table');
 
-            if (! $hasConfigure && ! $hasSchemaMethod) {
+            if (! $hasConfigureCall && ! $hasConfigureMethodDefinition) {
                 continue;
             }
 
@@ -86,7 +139,7 @@ final class SchemaCallSitePreScanner
 
             $callers = $this->mergeCallerMaps(
                 $callers,
-                $this->processStatements($stmts, $finder, $hasConfigure, $hasSchemaMethod)
+                $this->processStatements($stmts, $finder, $hasConfigureCall, $hasConfigureMethodDefinition),
             );
         }
 
@@ -94,10 +147,36 @@ final class SchemaCallSitePreScanner
     }
 
     /**
+     * Convert caller map to FilamentPageAnnotation objects.
+     *
+     * @param  array<string, list<string>>  $callerMap
+     * @return array<string, list<FilamentPageAnnotation>>
+     */
+    protected function buildAnnotations(array $callerMap): array
+    {
+        $annotations = [];
+
+        foreach ($callerMap as $targetClass => $callerClasses) {
+            foreach ($callerClasses as $caller) {
+                $model = $this->resourceModelResolver->resolve($caller);
+                $pageTypeNode = new IdentifierTypeNode($caller);
+
+                $typeNode = $model !== null
+                    ? new GenericTypeNode($pageTypeNode, [new IdentifierTypeNode($model)])
+                    : $pageTypeNode;
+
+                $annotations[$targetClass][] = new FilamentPageAnnotation(type: $typeNode);
+            }
+        }
+
+        return $annotations;
+    }
+
+    /**
      * @param  array<Node>  $stmts
      * @return array<string, list<string>>
      */
-    protected function processStatements(array $stmts, NodeFinder $finder, bool $hasConfigure, bool $hasSchemaMethod): array
+    protected function processStatements(array $stmts, NodeFinder $finder, bool $hasConfigureCall, bool $hasConfigureMethodDefinition): array
     {
         $useMap = NamespaceHelper::buildQualifiedImportMapFromAst($stmts, $finder);
         $namespace = NamespaceHelper::findNamespaceDeclaration($stmts, $finder);
@@ -105,14 +184,14 @@ final class SchemaCallSitePreScanner
         /** @var list<StaticCall> $calls */
         $calls = $finder->findInstanceOf($stmts, StaticCall::class);
 
-        $callers = $hasConfigure
+        $callers = $hasConfigureCall
             ? $this->collectConfigureCallers($calls, $useMap, $namespace, $stmts, $finder)
             : [];
 
-        if ($hasSchemaMethod) {
+        if ($hasConfigureMethodDefinition) {
             $callers = $this->mergeCallerMaps(
                 $callers,
-                $this->collectCustomComponentCallers($calls, $useMap, $namespace, $stmts, $finder)
+                $this->collectCustomComponentCallers($calls, $useMap, $namespace, $stmts, $finder),
             );
         }
 
@@ -120,8 +199,6 @@ final class SchemaCallSitePreScanner
     }
 
     /**
-     * Collect Foo::configure($schema) → caller class mappings.
-     *
      * @param  list<StaticCall>  $calls
      * @param  array<string, string>  $useMap
      * @param  array<Node>  $stmts
@@ -132,15 +209,15 @@ final class SchemaCallSitePreScanner
         $callers = [];
 
         foreach ($calls as $call) {
-            if (! $call->name instanceof Identifier || $call->name->name !== 'configure' || ! $call->class instanceof Name) {
+            if (! $this->isNamedStaticCall($call, 'configure')) {
                 continue;
             }
 
             $schemaClass = NamespaceHelper::toFullyQualified((string) $call->class, $useMap, $namespace);
             $callerFqcn = $this->resolveEnclosingClass($call, $stmts, $finder, $namespace);
 
-            if ($callerFqcn !== null && ! in_array($callerFqcn, $callers[$schemaClass] ?? [], true)) {
-                $callers[$schemaClass][] = $callerFqcn;
+            if ($callerFqcn !== null) {
+                $callers = $this->mergeCallerMaps($callers, [$schemaClass => [$callerFqcn]]);
             }
         }
 
@@ -148,8 +225,6 @@ final class SchemaCallSitePreScanner
     }
 
     /**
-     * Collect non-Filament Foo::make() → caller class mappings (custom components).
-     *
      * @param  list<StaticCall>  $calls
      * @param  array<string, string>  $useMap
      * @param  array<Node>  $stmts
@@ -160,7 +235,7 @@ final class SchemaCallSitePreScanner
         $callers = [];
 
         foreach ($calls as $call) {
-            if (! $call->name instanceof Identifier || $call->name->name !== 'make' || ! $call->class instanceof Name) {
+            if (! $this->isNamedStaticCall($call, 'make')) {
                 continue;
             }
 
@@ -172,16 +247,23 @@ final class SchemaCallSitePreScanner
 
             $callerFqcn = $this->resolveEnclosingClass($call, $stmts, $finder, $namespace);
 
-            if ($callerFqcn === null || $callerFqcn === $componentClass) {
-                continue;
-            }
-
-            if (! in_array($callerFqcn, $callers[$componentClass] ?? [], true)) {
-                $callers[$componentClass][] = $callerFqcn;
+            if ($callerFqcn !== null && $callerFqcn !== $componentClass) {
+                $callers = $this->mergeCallerMaps($callers, [$componentClass => [$callerFqcn]]);
             }
         }
 
         return $callers;
+    }
+
+    /**
+     * @phpstan-assert-if-true Identifier $call->name
+     * @phpstan-assert-if-true Name $call->class
+     */
+    protected function isNamedStaticCall(StaticCall $call, string $methodName): bool
+    {
+        return $call->name instanceof Identifier
+            && $call->name->name === $methodName
+            && $call->class instanceof Name;
     }
 
     /**
@@ -232,12 +314,18 @@ final class SchemaCallSitePreScanner
                 continue;
             }
 
-            if ($call->getStartLine() >= $class->getStartLine() && $call->getEndLine() <= $class->getEndLine()) {
+            if ($this->nodeIsInsideClass($call, $class)) {
                 return (string) $class->name;
             }
         }
 
         return null;
+    }
+
+    protected function nodeIsInsideClass(Node $node, Class_ $class): bool
+    {
+        return $node->getStartLine() >= $class->getStartLine()
+            && $node->getEndLine() <= $class->getEndLine();
     }
 
     /**

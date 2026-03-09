@@ -6,6 +6,7 @@ use Fixtures\App\Models\Post;
 use Fixtures\App\Resources\PostResource\RelationManagers\CommentsRelationManager;
 use ImSuperlative\FilamentPhpstan\Resolvers\ResourceModelResolver;
 use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
+use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
 use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestEditPage;
 use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestModel;
 use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestResource;
@@ -17,6 +18,7 @@ beforeEach(function () {
     $this->resolver = new ResourceModelResolver(
         $reflectionProvider,
         new FilamentClassHelper($reflectionProvider),
+        new ModelReflectionHelper($reflectionProvider),
     );
 });
 

@@ -1,48 +1,38 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Collectors\AggregateFieldRegistry;
-use ImSuperlative\FilamentPhpstan\Collectors\CustomComponentRegistry;
-use ImSuperlative\FilamentPhpstan\Collectors\SchemaCallSiteRegistry;
-use ImSuperlative\FilamentPhpstan\Collectors\TableQueryRegistry;
-use ImSuperlative\FilamentPhpstan\Collectors\VirtualFieldRegistry;
 use ImSuperlative\FilamentPhpstan\FieldValidationLevel;
-use ImSuperlative\FilamentPhpstan\Parser\StatePathPrefixVisitor;
+use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
 use ImSuperlative\FilamentPhpstan\Resolvers\AnnotationReader;
+use ImSuperlative\FilamentPhpstan\Resolvers\AttributeAnnotationParser;
 use ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver;
 use ImSuperlative\FilamentPhpstan\Resolvers\FieldPathResolver;
+use ImSuperlative\FilamentPhpstan\Resolvers\PhpDocAnnotationParser;
 use ImSuperlative\FilamentPhpstan\Resolvers\ResourceModelResolver;
+use ImSuperlative\FilamentPhpstan\Resolvers\VirtualAnnotationProvider;
 use ImSuperlative\FilamentPhpstan\Rules\MakeFieldValidation\AggregateFieldValidator;
 use ImSuperlative\FilamentPhpstan\Rules\MakeFieldValidation\MakeFieldValidationRule;
 use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
 use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
 use ImSuperlative\FilamentPhpstan\Tests\ConfigurableRuleTestCase;
-use PHPStan\Parser\Parser;
-use PHPStan\PhpDocParser\Lexer\Lexer;
-use PHPStan\PhpDocParser\Parser\ConstExprParser;
-use PHPStan\PhpDocParser\Parser\PhpDocParser;
-use PHPStan\PhpDocParser\Parser\TypeParser;
-use PHPStan\PhpDocParser\ParserConfig;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 
-// Helper to build rule with given level and optional registry
-function buildRule(FieldValidationLevel $level, ?VirtualFieldRegistry $registry = null, ?CustomComponentRegistry $customRegistry = null): MakeFieldValidationRule
+// Helper to build rule with given level
+function buildRule(FieldValidationLevel $level): MakeFieldValidationRule
 {
     $reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
     $filamentClassHelper = new FilamentClassHelper($reflectionProvider);
 
-    $config = new ParserConfig(usedAttributes: []);
-    $lexer = new Lexer($config);
-    $constExprParser = new ConstExprParser($config);
-    $typeParser = new TypeParser($config, $constExprParser);
-    $phpDocParser = new PhpDocParser($config, $typeParser, $constExprParser);
+    $typeStringParser = TypeStringParser::make();
 
     $modelReflectionHelper = new ModelReflectionHelper($reflectionProvider);
-    $annotationReader = new AnnotationReader($lexer, $typeParser, $phpDocParser);
+    $phpDocAnnotationParser = new PhpDocAnnotationParser($typeStringParser);
+    $annotationReader = new AnnotationReader(
+        new AttributeAnnotationParser($typeStringParser),
+        $phpDocAnnotationParser,
+    );
     $fieldPathResolver = new FieldPathResolver($modelReflectionHelper, $reflectionProvider);
-
-    /** @var Parser $parser */
-    $parser = PHPStanTestCase::getContainer()->getService('defaultAnalysisParser');
+    $resourceModelResolver = new ResourceModelResolver($reflectionProvider, $filamentClassHelper, $modelReflectionHelper);
 
     return new MakeFieldValidationRule(
         level: $level,
@@ -50,18 +40,20 @@ function buildRule(FieldValidationLevel $level, ?VirtualFieldRegistry $registry 
         filamentClassHelper: $filamentClassHelper,
         componentContextResolver: new ComponentContextResolver(
             $filamentClassHelper,
-            new ResourceModelResolver($reflectionProvider, $filamentClassHelper),
+            $resourceModelResolver,
             $annotationReader,
-            new TableQueryRegistry,
             $reflectionProvider,
             $modelReflectionHelper,
-            $customRegistry ?? new CustomComponentRegistry,
-            new SchemaCallSiteRegistry,
+            new VirtualAnnotationProvider(
+                enabled: false,
+                filamentPath: '',
+                currentWorkingDirectory: '',
+                analysedPaths: [],
+                analysedPathsFromConfig: [],
+                resourceModelResolver: $resourceModelResolver,
+            ),
         ),
-        virtualFieldRegistry: $registry ?? new VirtualFieldRegistry,
-        aggregateFieldRegistry: new AggregateFieldRegistry,
-        annotationReader: $annotationReader,
-        statePathPrefixVisitor: new StatePathPrefixVisitor($parser),
+        phpDocParser: $phpDocAnnotationParser,
         fieldPathResolver: $fieldPathResolver,
         aggregateFieldValidator: new AggregateFieldValidator($level, $modelReflectionHelper),
     );
@@ -179,19 +171,11 @@ it('does not validate form fields at any level', function () {
 });
 
 // --- Virtual columns ---
+// Note: Virtual column skipping is now handled via filament.virtual node attributes
+// set by FieldFluentMethodVisitor, not by VirtualFieldRegistry injection.
 
 it('level 2: skips virtual columns with ->state()', function () {
-    $registry = new VirtualFieldRegistry;
-    $registry->registerVirtual(
-        'Fixtures\App\MakeFieldTests\VirtualColumnResource::table',
-        'custom_display'
-    );
-    $registry->registerVirtual(
-        'Fixtures\App\MakeFieldTests\VirtualColumnResource::table',
-        'computed_value'
-    );
-
-    ConfigurableRuleTestCase::useRule(buildRule(FieldValidationLevel::Level_2, $registry));
+    ConfigurableRuleTestCase::useRule(buildRule(FieldValidationLevel::Level_2));
 
     $this->analyse(
         [__DIR__.'/../../Fixtures/App/MakeFieldTests/VirtualColumnResource.php'],
@@ -231,11 +215,11 @@ it('level 3: validates full dot path including leaf and typed properties', funct
 
 // --- Records table skip ---
 
-it('skips all validation when table uses ->records()', function () {
-    $registry = new VirtualFieldRegistry;
-    $registry->registerSkippedScope('Fixtures\App\MakeFieldTests\RecordsTablePage::table');
+// Note: Scope skipping is now handled via filament.scopeSkipped node attributes
+// set by FieldFluentMethodVisitor, not by VirtualFieldRegistry injection.
 
-    ConfigurableRuleTestCase::useRule(buildRule(FieldValidationLevel::Level_2, $registry));
+it('skips all validation when table uses ->records()', function () {
+    ConfigurableRuleTestCase::useRule(buildRule(FieldValidationLevel::Level_2));
 
     $this->analyse(
         [__DIR__.'/../../Fixtures/App/MakeFieldTests/RecordsTablePage.php'],
@@ -246,11 +230,7 @@ it('skips all validation when table uses ->records()', function () {
 // --- Custom component validation ---
 
 it('level 2: validates fields inside custom component using collector-inferred model', function () {
-    $customRegistry = new CustomComponentRegistry;
-    $customRegistry->register('Fixtures\App\CustomComponents\EmailDeliveryGroup', 'Fixtures\App\Models\Post');
-    $customRegistry->register('Fixtures\App\CustomComponents\CreatedAtEntry', 'Fixtures\App\Models\Post');
-
-    ConfigurableRuleTestCase::useRule(buildRule(FieldValidationLevel::Level_2, customRegistry: $customRegistry));
+    ConfigurableRuleTestCase::useRule(buildRule(FieldValidationLevel::Level_2));
 
     // EmailDeliveryGroup has TextEntry::make('latestSubmissionEmail.nonexistent_field')
     // 'latestSubmissionEmail' is a valid relation on Post
@@ -266,26 +246,20 @@ it('level 2: validates fields inside custom component using collector-inferred m
 });
 
 it('level 3: validates leaf fields inside custom component', function () {
-    $customRegistry = new CustomComponentRegistry;
-    $customRegistry->register('Fixtures\App\CustomComponents\EmailDeliveryGroup', 'Fixtures\App\Models\Post');
-
-    ConfigurableRuleTestCase::useRule(buildRule(FieldValidationLevel::Level_3, customRegistry: $customRegistry));
+    ConfigurableRuleTestCase::useRule(buildRule(FieldValidationLevel::Level_3));
 
     // At level 3, leaf columns are validated
     // 'nonexistent_field' does not exist on Email model
     $this->analyse(
         [__DIR__.'/../../Fixtures/App/CustomComponents/EmailDeliveryGroup.php'],
         [
-            ["'nonexistent_field' does not exist on Fixtures\\App\\Models\\Email in dot-notation field 'latestSubmissionEmail.nonexistent_field'.", 25],
+            ["'nonexistent_field' does not exist on Fixtures\\App\\Models\\Email in dot-notation field 'latestSubmissionEmail.nonexistent_field'.", 28],
         ]
     );
 });
 
 it('level 3: @filament-field overrides segment type resolution', function () {
-    $customRegistry = new CustomComponentRegistry;
-    $customRegistry->register('Fixtures\App\CustomComponents\AnnotatedHelper', 'Fixtures\App\Models\Post');
-
-    ConfigurableRuleTestCase::useRule(buildRule(FieldValidationLevel::Level_3, customRegistry: $customRegistry));
+    ConfigurableRuleTestCase::useRule(buildRule(FieldValidationLevel::Level_3));
 
     // AnnotatedHelper has @filament-field Email latestSubmissionEmail
     // So 'latestSubmissionEmail' resolves to Email, then leaf is validated against Email
@@ -293,7 +267,7 @@ it('level 3: @filament-field overrides segment type resolution', function () {
     $this->analyse(
         [__DIR__.'/../../Fixtures/App/CustomComponents/AnnotatedHelper.php'],
         [
-            ["'nonexistent_field' does not exist on Fixtures\App\Models\Email in dot-notation field 'latestSubmissionEmail.nonexistent_field'.", 19],
+            ["'nonexistent_field' does not exist on Fixtures\App\Models\Email in dot-notation field 'latestSubmissionEmail.nonexistent_field'.", 21],
         ]
     );
 });

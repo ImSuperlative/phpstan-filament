@@ -16,16 +16,16 @@ class TableQueryOverrideAssertions extends EditPost
         return $table
             ->query(Activity::query())
             ->columns([
-                TextColumn::make('event_type')
+                TextColumn::make('title')
                     ->formatStateUsing(function ($state) {
                         assertType('string', $state);
 
                         return $state;
                     })
                     ->description(function ($record) {
-                        assertType('Fixtures\App\Models\Activity', $record);
+                        assertType('Fixtures\App\Models\Post', $record);
 
-                        return $record->description;
+                        return $record->title;
                     }),
             ]);
     }

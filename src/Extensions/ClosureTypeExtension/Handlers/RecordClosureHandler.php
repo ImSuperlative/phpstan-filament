@@ -11,6 +11,8 @@ use PHPStan\Type\TypeCombinator;
 
 final class RecordClosureHandler implements ClosureParameterHandler
 {
+    protected const array NARROW_PARAMS = ['record', 'replica'];
+
     public function __construct(
         protected readonly bool $recordClosure,
         protected readonly FilamentClassHelper $filamentClassHelper,
@@ -22,7 +24,13 @@ final class RecordClosureHandler implements ClosureParameterHandler
             return null;
         }
 
-        $base = new ObjectType($context->modelClass);
+        $base = TypeCombinator::union(
+            ...array_map(
+                fn (string $class) => new ObjectType($class),
+                $context->modelClasses,
+            ),
+        );
+
         if (
             $context->callerClass !== null
             && $this->filamentClassHelper->isTableColumn($context->callerClass)
@@ -33,14 +41,11 @@ final class RecordClosureHandler implements ClosureParameterHandler
         return TypeCombinator::addNull($base);
     }
 
-    protected const array NARROW_PARAMS = ['record', 'replica'];
-
-    /** @phpstan-assert-if-true !null $context->modelClass */
     protected function shouldResolveType(string $paramName, bool $hasTypeHint, ClosureHandlerContext $context): bool
     {
         return $this->recordClosure
             && ! $hasTypeHint
             && in_array($paramName, self::NARROW_PARAMS, true)
-            && $context->modelClass !== null;
+            && $context->modelClasses !== [];
     }
 }

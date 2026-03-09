@@ -3,35 +3,6 @@
 
 services:
     -
-        class: ImSuperlative\FilamentPhpstan\Collectors\VirtualFieldRegistry
-
-    -
-        class: ImSuperlative\FilamentPhpstan\Collectors\StateOverrideCollector
-        tags:
-            - phpstan.collector
-
-    -
-        class: ImSuperlative\FilamentPhpstan\Collectors\AggregateFieldRegistry
-
-    -
-        class: ImSuperlative\FilamentPhpstan\Collectors\AggregateOverrideCollector
-        tags:
-            - phpstan.collector
-
-    -
-        class: ImSuperlative\FilamentPhpstan\Collectors\RecordsTableCollector
-        tags:
-            - phpstan.collector
-
-    -
-        class: ImSuperlative\FilamentPhpstan\Collectors\CustomComponentRegistry
-
-    -
-        class: ImSuperlative\FilamentPhpstan\Collectors\CustomComponentCollector
-        tags:
-            - phpstan.collector
-
-    -
         class: ImSuperlative\FilamentPhpstan\FieldValidationLevel
         factory: ImSuperlative\FilamentPhpstan\FieldValidationLevel::from(%filamentPhpstan.checkFieldPaths%)
 

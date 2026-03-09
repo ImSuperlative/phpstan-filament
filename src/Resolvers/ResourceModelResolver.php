@@ -3,6 +3,7 @@
 namespace ImSuperlative\FilamentPhpstan\Resolvers;
 
 use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
+use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
 use PHPStan\Reflection\ReflectionProvider;
 
 final class ResourceModelResolver
@@ -13,6 +14,7 @@ final class ResourceModelResolver
     public function __construct(
         protected readonly ReflectionProvider $reflectionProvider,
         protected readonly FilamentClassHelper $filamentClassHelper,
+        protected readonly ModelReflectionHelper $modelReflectionHelper,
     ) {}
 
     public function resolve(string $className): ?string
@@ -25,6 +27,27 @@ final class ResourceModelResolver
         $this->cache[$className] = $result;
 
         return $result;
+    }
+
+    /**
+     * Resolve the parent resource's model (ignoring nested relationship resolution).
+     * Used by getOwnerRecord() which always returns the parent resource model.
+     */
+    public function resolveResourceModel(string $className): ?string
+    {
+        if (! $this->reflectionProvider->hasClass($className)) {
+            return null;
+        }
+
+        // For resource pages (including ManageRelatedRecords), resolve via parent resource
+        if ($this->filamentClassHelper->isResourcePage($className)) {
+            $resourceClass = $this->filamentClassHelper->readStaticProperty($className, 'resource');
+
+            return $resourceClass !== null ? $this->resolve($resourceClass) : null;
+        }
+
+        // For relation managers, same as resolve()
+        return $this->resolve($className);
     }
 
     public function clearCache(): void
@@ -56,9 +79,34 @@ final class ResourceModelResolver
             return null;
         }
 
+        // ManageRelatedRecords pages manage a related model, not the parent resource's model
+        if ($this->filamentClassHelper->isManageRelatedRecords($className)) {
+            return $this->resolveNestedPageModel($className);
+        }
+
         $resourceClass = $this->filamentClassHelper->readStaticProperty($className, 'resource');
 
         return $resourceClass !== null ? $this->resolve($resourceClass) : null;
+    }
+
+    protected function resolveNestedPageModel(string $className): ?string
+    {
+        $resourceClass = $this->filamentClassHelper->readStaticProperty($className, 'resource');
+        if ($resourceClass === null) {
+            return null;
+        }
+
+        $parentModel = $this->resolve($resourceClass);
+        if ($parentModel === null) {
+            return null;
+        }
+
+        $relationship = $this->filamentClassHelper->readStaticProperty($className, 'relationship');
+        if ($relationship === null) {
+            return null;
+        }
+
+        return $this->modelReflectionHelper->resolveRelatedModelStatically($parentModel, $relationship);
     }
 
     protected function resolveFromRelationManager(string $className): ?string
@@ -99,10 +147,11 @@ final class ResourceModelResolver
     protected function extractResourceFromClass(string $className): ?string
     {
         $namespace = substr($className, 0, (int) strrpos($className, '\\'));
-        $lastSegment = substr($namespace, (int) strrpos($namespace, '\\') + 1);
 
-        return $lastSegment === 'RelationManagers'
-            ? substr($namespace, 0, (int) strrpos($namespace, '\\'))
-            : null;
+        if (! str_ends_with($namespace, '\\RelationManagers')) {
+            return null;
+        }
+
+        return substr($namespace, 0, -strlen('\\RelationManagers'));
     }
 }

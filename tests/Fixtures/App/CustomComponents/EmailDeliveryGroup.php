@@ -6,6 +6,9 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 
+/**
+ * @filament-model \Fixtures\App\Models\Post
+ */
 class EmailDeliveryGroup
 {
     public static function make(): Group

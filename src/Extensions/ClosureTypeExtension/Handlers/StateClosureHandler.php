@@ -6,6 +6,7 @@ use ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\ClosureHandler
 use ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\ClosureParameterHandler;
 use ImSuperlative\FilamentPhpstan\Resolvers\StateTypeResolver;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 
 final class StateClosureHandler implements ClosureParameterHandler
 {
@@ -20,7 +21,21 @@ final class StateClosureHandler implements ClosureParameterHandler
             return null;
         }
 
-        return $this->stateTypeResolver->resolve($context->methodCall, $context->scope, $context->modelClass);
+        if ($context->modelClasses === []) {
+            return $this->stateTypeResolver->resolve($context->methodCall, $context->scope, null);
+        }
+
+        $types = [];
+
+        foreach ($context->modelClasses as $modelClass) {
+            $type = $this->stateTypeResolver->resolve($context->methodCall, $context->scope, $modelClass);
+
+            if ($type !== null) {
+                $types[] = $type;
+            }
+        }
+
+        return $types !== [] ? TypeCombinator::union(...$types) : null;
     }
 
     protected function shouldResolveType(string $paramName, bool $hasTypeHint): bool

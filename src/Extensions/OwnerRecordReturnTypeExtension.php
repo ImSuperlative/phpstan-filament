@@ -53,7 +53,7 @@ final class OwnerRecordReturnTypeExtension implements DynamicMethodReturnTypeExt
         $modelTypes = [];
 
         foreach ($classNames as $className) {
-            $modelClass = $this->resourceModelResolver->resolve($className);
+            $modelClass = $this->resourceModelResolver->resolveResourceModel($className);
 
             if ($modelClass !== null) {
                 $modelTypes[] = new ObjectType($modelClass);

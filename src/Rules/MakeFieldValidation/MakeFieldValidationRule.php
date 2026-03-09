@@ -2,14 +2,11 @@
 
 namespace ImSuperlative\FilamentPhpstan\Rules\MakeFieldValidation;
 
-use ImSuperlative\FilamentPhpstan\Collectors\AggregateFieldRegistry;
-use ImSuperlative\FilamentPhpstan\Collectors\VirtualFieldRegistry;
 use ImSuperlative\FilamentPhpstan\Data\SegmentTag;
 use ImSuperlative\FilamentPhpstan\FieldValidationLevel;
-use ImSuperlative\FilamentPhpstan\Parser\StatePathPrefixVisitor;
-use ImSuperlative\FilamentPhpstan\Resolvers\AnnotationReader;
 use ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver;
 use ImSuperlative\FilamentPhpstan\Resolvers\FieldPathResolver;
+use ImSuperlative\FilamentPhpstan\Resolvers\PhpDocAnnotationParser;
 use ImSuperlative\FilamentPhpstan\Support\AstHelper;
 use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
 use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
@@ -35,10 +32,7 @@ class MakeFieldValidationRule implements Rule
         protected ModelReflectionHelper $modelReflectionHelper,
         protected FilamentClassHelper $filamentClassHelper,
         protected ComponentContextResolver $componentContextResolver,
-        protected VirtualFieldRegistry $virtualFieldRegistry,
-        protected AggregateFieldRegistry $aggregateFieldRegistry,
-        protected AnnotationReader $annotationReader,
-        protected StatePathPrefixVisitor $statePathPrefixVisitor,
+        protected PhpDocAnnotationParser $phpDocParser,
         protected FieldPathResolver $fieldPathResolver,
         protected AggregateFieldValidator $aggregateFieldValidator,
     ) {}
@@ -70,49 +64,67 @@ class MakeFieldValidationRule implements Rule
             return [];
         }
 
-        $scopeKey = AstHelper::buildScopeKey($scope);
-
-        // If inside a nested schema, prepend the parent state path prefix.
-        // Below level 3 we can't resolve intermediate types, so skip entirely.
-        $prefix = $this->statePathPrefixVisitor->lookupPrefix($scope->getFile(), $node->getStartLine());
-        if ($prefix !== null) {
-            if (! $this->level->shouldWalkTypedProperties()) {
-                return [];
-            }
-
-            // If the parent component is virtual (->state() / ->view()), skip children entirely
-            if ($scopeKey !== null && $this->virtualFieldRegistry->isVirtual($scopeKey, $prefix)) {
-                return [];
-            }
-
-            $fieldName = $prefix.'.'.$fieldName;
-        }
-
-        // Check if scope is skipped (->records() table) or field is virtual (->state() / ->getStateUsing())
-        if (
-            $scopeKey !== null
-            && ($this->virtualFieldRegistry->isScopeSkipped($scopeKey)
-                || $this->virtualFieldRegistry->isVirtual($scopeKey, $fieldName))
-        ) {
+        if ($this->isScopeSkipped($node) || $this->isVirtualField($node)) {
             return [];
         }
 
-        // Aggregate pattern: {relation}_{function}[_{column}], or explicit override from ->counts() / ->avg() etc.
-        $aggregateParts = ($scopeKey !== null ? $this->aggregateFieldRegistry->get($scopeKey, $fieldName) : null)
-            ?? $this->aggregateFieldValidator->extractAggregateParts($fieldName);
+        $fieldName = $this->applyStatePrefix($node, $fieldName);
+        if ($fieldName === null) {
+            return [];
+        }
+
+        $aggregateParts = $this->resolveAggregateParts($node, $fieldName);
         if ($aggregateParts !== null) {
             return $this->aggregateFieldValidator->validate($aggregateParts, $fieldName, $modelClass, $scope);
         }
 
-        // Dot notation
         if (str_contains($fieldName, '.')) {
             return $this->validateDotNotation($fieldName, $modelClass, $scope);
         }
 
-        // Plain field (level 2+)
         return $this->level->shouldValidatePlainFields()
             ? $this->validatePlainField($fieldName, $modelClass, $scope)
             : [];
+    }
+
+    protected function isScopeSkipped(StaticCall $node): bool
+    {
+        return $node->getAttribute('filament.scopeSkipped') === true;
+    }
+
+    protected function isVirtualField(StaticCall $node): bool
+    {
+        return $node->getAttribute('filament.virtual') === true;
+    }
+
+    /**
+     * Prepend nested schema prefix if present. Returns null if prefix
+     * exists but the validation level can't resolve intermediate types.
+     */
+    protected function applyStatePrefix(StaticCall $node, string $fieldName): ?string
+    {
+        $prefix = $node->getAttribute('filament.statePrefix');
+
+        if ($prefix === null) {
+            return $fieldName;
+        }
+
+        if (! $this->level->shouldWalkTypedProperties()) {
+            return null;
+        }
+
+        return $prefix.'.'.$fieldName;
+    }
+
+    /**
+     * @return array{string, ?string}|null
+     */
+    protected function resolveAggregateParts(StaticCall $node, string $fieldName): ?array
+    {
+        /** @var array{string, ?string}|null $override */
+        $override = $node->getAttribute('filament.aggregate');
+
+        return $override ?? $this->aggregateFieldValidator->extractAggregateParts($fieldName);
     }
 
     /**
@@ -148,21 +160,15 @@ class MakeFieldValidationRule implements Rule
     {
         $result = $this->fieldPathResolver->resolve($fieldName, $modelClass, $scope);
 
-        // Only check intermediate segments (skip the leaf)
-        $intermediateCount = count($result->segments) - 1;
-        if ($result->remaining !== []) {
-            $intermediateCount = count($result->segments);
-        }
+        $hasLeaf = $result->remaining === [];
+        $intermediateSegments = $hasLeaf
+            ? array_slice($result->segments, 0, -1)
+            : $result->segments;
 
-        for ($i = 0; $i < $intermediateCount; $i++) {
-            $segment = $result->segments[$i];
-
-            if ($segment->is(SegmentTag::Relation)) {
-                continue;
+        foreach ($intermediateSegments as $segment) {
+            if (! $segment->is(SegmentTag::Relation)) {
+                return [];
             }
-
-            // Not a relation → return no errors (could be cast, property, accessor)
-            return [];
         }
 
         return [];
@@ -184,22 +190,14 @@ class MakeFieldValidationRule implements Rule
         }
 
         $result = $this->fieldPathResolver->resolve($fieldName, $modelClass, $scope);
+        $lastIndex = count($result->segments) - 1;
 
         foreach ($result->segments as $i => $segment) {
-            $isLeaf = $i === count($result->segments) - 1 && $result->remaining === [];
+            $isLeaf = $i === $lastIndex && $result->remaining === [];
 
             if ($isLeaf) {
                 if (! $segment->isAny(SegmentTag::Property, SegmentTag::Method)) {
-                    return [
-                        RuleErrorBuilder::message(sprintf(
-                            "'%s' does not exist on %s in dot-notation field '%s'.",
-                            $segment->name,
-                            $result->lastResolvedClass() ?? $modelClass,
-                            $fieldName,
-                        ))
-                            ->identifier(self::IDENTIFIER)
-                            ->build(),
-                    ];
+                    return $this->dotSegmentNotFoundError($segment->name, $result->lastResolvedClass() ?? $modelClass, $fieldName);
                 }
 
                 break;
@@ -215,16 +213,7 @@ class MakeFieldValidationRule implements Rule
                 return [];
             }
 
-            return [
-                RuleErrorBuilder::message(sprintf(
-                    "'%s' is not a relationship or typed property on %s in dot-notation field '%s'.",
-                    $segment->name,
-                    $modelClass,
-                    $fieldName,
-                ))
-                    ->identifier(self::IDENTIFIER)
-                    ->build(),
-            ];
+            return $this->segmentNotWalkableError($segment->name, $modelClass, $fieldName);
         }
 
         return [];
@@ -242,7 +231,7 @@ class MakeFieldValidationRule implements Rule
 
         foreach ($segments as $segment) {
             if (isset($fieldOverrides[$segment])) {
-                if ($fieldOverrides[$segment] === 'Illuminate\Database\Eloquent\Model') {
+                if ($fieldOverrides[$segment] === ModelReflectionHelper::MODEL_BASE) {
                     return [];
                 }
                 $currentClass = $fieldOverrides[$segment];
@@ -259,16 +248,7 @@ class MakeFieldValidationRule implements Rule
                     return [];
                 }
 
-                return [
-                    RuleErrorBuilder::message(sprintf(
-                        "'%s' is not a relationship or typed property on %s in dot-notation field '%s'.",
-                        $segment,
-                        $currentClass,
-                        $fieldName,
-                    ))
-                        ->identifier(self::IDENTIFIER)
-                        ->build(),
-                ];
+                return $this->segmentNotWalkableError($segment, $currentClass, $fieldName);
             }
 
             $currentClass = $resolved->resolvedClass;
@@ -278,16 +258,7 @@ class MakeFieldValidationRule implements Rule
         $leafSegment = $leafResult->segments[0] ?? null;
 
         if ($leafSegment === null || ! $leafSegment->isAny(SegmentTag::Property, SegmentTag::Method)) {
-            return [
-                RuleErrorBuilder::message(sprintf(
-                    "'%s' does not exist on %s in dot-notation field '%s'.",
-                    $leafColumn,
-                    $currentClass,
-                    $fieldName,
-                ))
-                    ->identifier(self::IDENTIFIER)
-                    ->build(),
-            ];
+            return $this->dotSegmentNotFoundError($leafColumn, $currentClass, $fieldName);
         }
 
         return [];
@@ -305,15 +276,46 @@ class MakeFieldValidationRule implements Rule
             return [];
         }
 
-        return [
-            RuleErrorBuilder::message(sprintf(
-                "'%s' does not exist on %s.",
-                $fieldName,
-                $modelClass,
-            ))
-                ->identifier(self::IDENTIFIER)
-                ->build(),
-        ];
+        return $this->fieldDoesNotExistError($fieldName, $modelClass);
+    }
+
+    /** @return list<RuleError> */
+    protected function fieldDoesNotExistError(string $fieldName, string $className): array
+    {
+        return [$this->buildError(sprintf(
+            "'%s' does not exist on %s.",
+            $fieldName,
+            $className
+        ))];
+    }
+
+    /** @return list<RuleError> */
+    protected function dotSegmentNotFoundError(string $segmentName, string $className, string $fieldName): array
+    {
+        return [$this->buildError(sprintf(
+            "'%s' does not exist on %s in dot-notation field '%s'.",
+            $segmentName,
+            $className,
+            $fieldName
+        ))];
+    }
+
+    /** @return list<RuleError> */
+    protected function segmentNotWalkableError(string $segmentName, string $className, string $fieldName): array
+    {
+        return [$this->buildError(sprintf(
+            "'%s' is not a relationship or typed property on %s in dot-notation field '%s'.",
+            $segmentName,
+            $className,
+            $fieldName
+        ))];
+    }
+
+    protected function buildError(string $template): RuleError
+    {
+        return RuleErrorBuilder::message($template)
+            ->identifier(self::IDENTIFIER)
+            ->build();
     }
 
     /**
@@ -333,7 +335,7 @@ class MakeFieldValidationRule implements Rule
             return [];
         }
 
-        $annotations = $this->annotationReader->readFieldAnnotations($phpDoc->getPhpDocString());
+        $annotations = $this->phpDocParser->readFieldAnnotations($phpDoc->getPhpDocString());
         $nameScope = $phpDoc->getNullableNameScope();
 
         $overrides = [];
