@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ImSuperlative\FilamentPhpstan\Support;
 
 use ImSuperlative\FilamentPhpstan\Data\ChainWalkResult;

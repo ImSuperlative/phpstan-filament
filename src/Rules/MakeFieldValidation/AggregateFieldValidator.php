@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ImSuperlative\FilamentPhpstan\Rules\MakeFieldValidation;
 
 use ImSuperlative\FilamentPhpstan\FieldValidationLevel;

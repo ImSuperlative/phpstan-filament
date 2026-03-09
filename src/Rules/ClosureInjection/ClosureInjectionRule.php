@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ImSuperlative\FilamentPhpstan\Rules\ClosureInjection;
 
 use ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 if (! function_exists('array_find_map')) {
     /**
      * Returns the first non-null result of applying the callback to each element.

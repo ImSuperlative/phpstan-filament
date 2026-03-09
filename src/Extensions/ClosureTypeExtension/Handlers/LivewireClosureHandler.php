@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers;
 
 use ImSuperlative\FilamentPhpstan\Data\FilamentPageAnnotation;

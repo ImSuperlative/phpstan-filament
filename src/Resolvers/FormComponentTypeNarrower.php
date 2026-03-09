@@ -2,6 +2,8 @@
 
 /** @noinspection ClassConstantCanBeUsedInspection */
 
+declare(strict_types=1);
+
 namespace ImSuperlative\FilamentPhpstan\Resolvers;
 
 use ImSuperlative\FilamentPhpstan\Data\ChainAnalysis;
