@@ -50,20 +50,20 @@ class PostFormSchema
 
 ### Custom queries
 
-When a page uses a custom query targeting a different model (e.g. an Activity log page on an Event resource), use `@filament-model` to specify the correct model:
+When a page uses a custom query targeting a different model (e.g. a comments page on a Post resource), use `@filament-model` to specify the correct model:
 
 ```php
-use Spatie\Activitylog\Models\Activity;
+use App\Models\Comment;
 
-/** @filament-model Activity */
-class ListActivities extends ViewRecord implements HasTable
+/** @filament-model Comment */
+class ListComments extends ViewRecord implements HasTable
 {
     public function table(Table $table): Table
     {
         return $table
-            ->query(Activity::query())
+            ->query(Comment::query())
             ->columns([
-                TextColumn::make('causer.name'),  // validated against Activity
+                TextColumn::make('post.title'),  // validated against Comment
             ]);
     }
 }
@@ -72,10 +72,10 @@ class ListActivities extends ViewRecord implements HasTable
 Alternatively, if your query method declares a generic return type, the model is inferred automatically:
 
 ```php
-/** @return Builder<Activity> */
+/** @return Builder<Comment> */
 protected function getTableQuery(): Builder
 {
-    return Activity::query()->where('subject_type', Event::class);
+    return Comment::query()->where('is_approved', true);
 }
 ```
 
@@ -228,18 +228,18 @@ Overrides the type resolution of a dot-notation segment in [field path validatio
 PHPDoc:
 
 ```php
-use App\Models\User;
+use App\Models\Post;
 
 /**
- * @filament-model Activity
- * @filament-field User causer
+ * @filament-model Comment
+ * @filament-field Post commentable
  */
-class ListActivities extends ViewRecord implements HasTable
+class ListComments extends ViewRecord implements HasTable
 {
     public function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('causer.name'),  // 'causer' resolves to User, 'name' validated against User
+            TextColumn::make('commentable.title'),  // 'commentable' resolves to Post, 'title' validated against Post
         ]);
     }
 }
@@ -251,17 +251,17 @@ Attribute:
 use ImSuperlative\FilamentPhpstan\Attributes\FilamentField;
 use ImSuperlative\FilamentPhpstan\Attributes\FilamentModel;
 
-#[FilamentModel(Activity::class)]
-#[FilamentField(User::class, field: 'causer')]
-class ListActivities extends ViewRecord implements HasTable
+#[FilamentModel(Comment::class)]
+#[FilamentField(Post::class, field: 'commentable')]
+class ListComments extends ViewRecord implements HasTable
 {
     public function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('causer.name'),  // 'causer' resolves to User, 'name' validated against User
+            TextColumn::make('commentable.title'),  // 'commentable' resolves to Post, 'title' validated against Post
         ]);
     }
 }
 ```
 
-When a dot-path segment resolves to `Illuminate\Database\Eloquent\Model` (e.g. from a `morphTo` relationship), validation is automatically skipped since the concrete type can't be determined. Use `@filament-field` or `#[FilamentField]` to provide the concrete type and enable full validation.
+When a dot-path segment resolves to `Illuminate\Database\Eloquent\Model` (e.g. from a `morphTo` relationship like `commentable`), validation is automatically skipped since the concrete type can't be determined. Use `@filament-field` or `#[FilamentField]` to provide the concrete type and enable full validation.

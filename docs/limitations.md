@@ -9,32 +9,32 @@ When schemas are extracted into shared/reusable classes, the extension loses con
 When a shared schema class is used from a `ManageRelatedRecords` page, closures inside the schema can't resolve `getOwnerRecord()` to the specific model type:
 
 ```php
-class ManageScannerAuth extends ManageRelatedRecords
+class ManageTags extends ManageRelatedRecords
 {
-    protected static string $resource = EventResource::class;
-    protected static string $relationship = 'scannerAuths';
+    protected static string $resource = PostResource::class;
+    protected static string $relationship = 'tags';
 
     public function form(Schema $schema): Schema
     {
-        return ScannerAuthForm::configure($schema);
+        return TagForm::configure($schema);
     }
 }
 
-class ScannerAuthForm
+class TagForm
 {
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Hidden::make('occasion_type')
+            Hidden::make('taggable_type')
                 ->default(fn (Page $livewire) => $livewire instanceof ManageRelatedRecords
-                    ? $livewire->getOwnerRecord()->className  // returns Model, not Event
+                    ? $livewire->getOwnerRecord()->getMorphClass()  // returns Model, not Post
                     : null),
         ]);
     }
 }
 ```
 
-`getOwnerRecord()` resolves to `Model` because the extension runs in `ScannerAuthForm`'s scope, which has no resource context. PHPStan doesn't have a mechanism for cross-class context propagation.
+`getOwnerRecord()` resolves to `Model` because the extension runs in `TagForm`'s scope, which has no resource context. PHPStan doesn't have a mechanism for cross-class context propagation.
 
 ### Workaround
 
@@ -46,9 +46,9 @@ Use `@var` inside the closure when a specific type is needed:
         return null;
     }
 
-    /** @var Event $owner */
+    /** @var Post $owner */
     $owner = $livewire->getOwnerRecord();
-    return $owner->className;
+    return $owner->getMorphClass();
 })
 ```
 

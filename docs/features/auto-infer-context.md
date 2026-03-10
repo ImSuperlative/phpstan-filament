@@ -38,12 +38,12 @@ class PostForm
 Without this feature, shared schemas need explicit annotations to provide context:
 
 ```php
-/** @filament-page EditPost */
+/** @filament-page EditPost<Post> */
 class PostForm { /* ... */ }
 
 // Or using attributes:
 
-#[FilamentPage(EditPost::class)]
+#[FilamentPage(EditPost::class, model: Post::class)]
 class PostForm { /* ... */ }
 ```
 

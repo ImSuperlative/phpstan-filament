@@ -119,7 +119,7 @@ Action::make('updateTitle')
         TextInput::make('slug'),
     ])
     ->action(function (array $data) {
-        // $data is array{title: mixed, slug: mixed}
+        // $data is array{title: string, slug: string|null}
     });
 ```
 

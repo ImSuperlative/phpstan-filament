@@ -115,30 +115,30 @@ The model is automatically resolved from the `$relationship` property. For examp
 The extension reads `$table->query(Model::query())` and infers the model from the `Builder` generic type:
 
 ```php
-// ✓ Model inferred automatically from Builder<Activity>
-$table->query(Activity::query())
+// ✓ Model inferred automatically from Builder<Post>
+$table->query(Post::query())
 ```
 
 Closures can't be read statically:
 
 ```php
 // ✗ Can't infer model — closure is opaque
-$table->query(fn () => Activity::query()->where(...))
+$table->query(fn () => Post::query()->where(...))
 ```
 
 Two workarounds:
 
 ```php
 // Option 1: Type the return of a query method
-/** @return Builder<Activity> */
+/** @return Builder<Post> */
 protected function getTableQuery(): Builder
 {
-    return Activity::query()->where('subject_type', Event::class);
+    return Post::query()->where('is_published', true);
 }
 
 // Option 2: Use @filament-model
-/** @filament-model Activity */
-class ListActivities extends ListRecords { ... }
+/** @filament-model Post */
+class ListPosts extends ListRecords { ... }
 ```
 
 ## Custom component validation
@@ -160,13 +160,13 @@ class CreatedAtEntry
 This also works for composite wrappers:
 
 ```php
-class EmailDeliveryGroup
+class AuthorInfoGroup
 {
     public static function make(): Group
     {
         return Group::make()->schema([
-            TextEntry::make('latestSubmissionEmail.sent_at'),
-            TextEntry::make('latestSubmissionEmail.delivered_at'),
+            TextEntry::make('author.name'),
+            TextEntry::make('author.email'),
         ]);
     }
 }
