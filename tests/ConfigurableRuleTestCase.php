@@ -2,6 +2,14 @@
 
 namespace ImSuperlative\PhpstanFilament\Tests;
 
+use ImSuperlative\PhpstanFilament\FieldValidationLevel;
+use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\FieldPathResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\PhpDocAnnotationParser;
+use ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation\AggregateFieldValidator;
+use ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation\MakeFieldValidationRule;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 
@@ -11,35 +19,38 @@ use PHPStan\Testing\RuleTestCase;
 class ConfigurableRuleTestCase extends RuleTestCase
 {
     /** @var Rule<\PhpParser\Node> */
-    private static Rule $rule; // @phpstan-ignore missingType.generics
-
-    /** @var list<\PHPStan\Collectors\Collector<\PhpParser\Node, mixed>> */
-    private static array $collectors = [];
+    private static Rule $rule;
 
     public static function useRule(Rule $rule): void // @phpstan-ignore missingType.generics
     {
         self::$rule = $rule;
     }
 
-    /** @param list<\PHPStan\Collectors\Collector<\PhpParser\Node, mixed>> $collectors */
-    public static function useCollectors(array $collectors): void
-    {
-        self::$collectors = $collectors;
-    }
-
-    protected function getRule(): Rule // @phpstan-ignore missingType.generics
+    protected function getRule(): Rule
     {
         return self::$rule;
-    }
-
-    /** @return list<\PHPStan\Collectors\Collector<\PhpParser\Node, mixed>> */
-    protected function getCollectors(): array
-    {
-        return self::$collectors;
     }
 
     public static function getAdditionalConfigFiles(): array
     {
         return [dirname(__DIR__).'/extension.neon'];
+    }
+
+    public static function buildRule(FieldValidationLevel $level): MakeFieldValidationRule
+    {
+        $container = self::getContainer();
+
+        return new MakeFieldValidationRule(
+            level: $level,
+            modelReflectionHelper: $container->getByType(ModelReflectionHelper::class),
+            filamentClassHelper: $container->getByType(FilamentClassHelper::class),
+            componentContextResolver: $container->getByType(ComponentContextResolver::class),
+            phpDocParser: $container->getByType(PhpDocAnnotationParser::class),
+            fieldPathResolver: $container->getByType(FieldPathResolver::class),
+            aggregateFieldValidator: new AggregateFieldValidator(
+                $level,
+                $container->getByType(ModelReflectionHelper::class),
+            ),
+        );
     }
 }

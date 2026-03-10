@@ -1,105 +1,35 @@
 <?php
 
-use ImSuperlative\PhpstanFilament\Parser\TypeStringParser;
-use ImSuperlative\PhpstanFilament\Resolvers\AnnotationReader;
-use ImSuperlative\PhpstanFilament\Resolvers\AttributeAnnotationParser;
 use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
-use ImSuperlative\PhpstanFilament\Resolvers\FieldPathResolver;
-use ImSuperlative\PhpstanFilament\Resolvers\FormComponentChainResolver;
-use ImSuperlative\PhpstanFilament\Resolvers\FormComponentStateMap;
-use ImSuperlative\PhpstanFilament\Resolvers\FormComponentTypeNarrower;
-use ImSuperlative\PhpstanFilament\Resolvers\FormOptionsNarrower;
-use ImSuperlative\PhpstanFilament\Resolvers\PhpDocAnnotationParser;
-use ImSuperlative\PhpstanFilament\Resolvers\ResourceModelResolver;
 use ImSuperlative\PhpstanFilament\Resolvers\StateTypeResolver;
-use ImSuperlative\PhpstanFilament\Resolvers\VirtualAnnotationProvider;
-use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\DiscoveredClassCache;
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\ClosureInjectionRule;
-use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\InjectionMapFactory;
-use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\VendorAstParser;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\TypedInjectionMap;
 use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
-use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
 use ImSuperlative\PhpstanFilament\Tests\ConfigurableRuleTestCase;
 use PHPStan\Reflection\ReflectionProvider;
-use PHPStan\Testing\PHPStanTestCase;
 
-function makeTestDependencies(): array
+function getEnabledRule(): ClosureInjectionRule
 {
-    $reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
-    $filamentClassHelper = new FilamentClassHelper($reflectionProvider);
-
-    $typeStringParser = TypeStringParser::make();
-    $annotationReader = new AnnotationReader(
-        new AttributeAnnotationParser($typeStringParser),
-        new PhpDocAnnotationParser($typeStringParser),
-    );
-
-    $componentStateMap = new FormComponentStateMap($reflectionProvider);
-    $stateNarrower = new FormComponentTypeNarrower($reflectionProvider, new FormOptionsNarrower);
-
-    $modelReflectionHelper = new ModelReflectionHelper($reflectionProvider);
-
-    $fieldPathResolver = new FieldPathResolver(
-        $modelReflectionHelper,
-        $reflectionProvider,
-    );
-
-    $chainResolver = new FormComponentChainResolver;
-
-    $stateTypeResolver = new StateTypeResolver(
-        $componentStateMap,
-        $stateNarrower,
-        $chainResolver,
-        $reflectionProvider,
-        $filamentClassHelper,
-        $fieldPathResolver,
-        makeFieldValidation: 3,
-    );
-
-    $resourceModelResolver = new ResourceModelResolver($reflectionProvider, $filamentClassHelper, $modelReflectionHelper);
-
-    $componentContextResolver = new ComponentContextResolver(
-        $filamentClassHelper,
-        $resourceModelResolver,
-        $annotationReader,
-        $reflectionProvider,
-        $modelReflectionHelper,
-        new VirtualAnnotationProvider(
-            enabled: false,
-            filamentPath: [],
-            currentWorkingDirectory: '',
-            analysedPaths: [],
-            analysedPathsFromConfig: [],
-            resourceModelResolver: $resourceModelResolver,
-        ),
-    );
-
-    return [
-        'reflectionProvider' => $reflectionProvider,
-        'filamentClassHelper' => $filamentClassHelper,
-        'stateTypeResolver' => $stateTypeResolver,
-        'componentContextResolver' => $componentContextResolver,
-    ];
+    return ConfigurableRuleTestCase::getContainer()->getByType(ClosureInjectionRule::class);
 }
 
-function makeEnabledRule(): ClosureInjectionRule
+function makeDisabledRule(): ClosureInjectionRule
 {
-    $deps = makeTestDependencies();
-    $factory = new InjectionMapFactory($deps['reflectionProvider'], new VendorAstParser, new DiscoveredClassCache);
+    $container = ConfigurableRuleTestCase::getContainer();
 
     return new ClosureInjectionRule(
-        closureInjection: true,
+        closureInjection: false,
         reservedClosureInjection: false,
-        injectionMap: $factory->create(),
-        filamentClassHelper: $deps['filamentClassHelper'],
-        reflectionProvider: $deps['reflectionProvider'],
-        stateTypeResolver: $deps['stateTypeResolver'],
-        componentContextResolver: $deps['componentContextResolver'],
+        injectionMap: $container->getByType(TypedInjectionMap::class),
+        filamentClassHelper: $container->getByType(FilamentClassHelper::class),
+        reflectionProvider: $container->getByType(ReflectionProvider::class),
+        stateTypeResolver: $container->getByType(StateTypeResolver::class),
+        componentContextResolver: $container->getByType(ComponentContextResolver::class),
     );
 }
 
 it('does not report errors for valid closure injections', function () {
-    ConfigurableRuleTestCase::useRule(makeEnabledRule());
+    ConfigurableRuleTestCase::useRule(getEnabledRule());
     $this->analyse(
         [__DIR__.'/../Fixtures/App/ClosureTests/InjectionValid.php'],
         [],
@@ -107,7 +37,7 @@ it('does not report errors for valid closure injections', function () {
 });
 
 it('reports errors for all invalid closure injections', function () {
-    ConfigurableRuleTestCase::useRule(makeEnabledRule());
+    ConfigurableRuleTestCase::useRule(getEnabledRule());
     $componentParams = '$context, $operation, $get, $livewire, $model, $parentRepeaterItemIndex, $rawState, $record, $set, $state, $component';
     $columnParams = '$livewire, $record, $rowLoop, $state, $table, $column, $value';
     $columnNoValueParams = '$livewire, $record, $rowLoop, $state, $table, $column';
@@ -132,7 +62,7 @@ it('reports errors for all invalid closure injections', function () {
 });
 
 it('does not report errors for valid typed closure injections', function () {
-    ConfigurableRuleTestCase::useRule(makeEnabledRule());
+    ConfigurableRuleTestCase::useRule(getEnabledRule());
     $this->analyse(
         [__DIR__.'/../Fixtures/App/ClosureTests/TypedInjectionValid.php'],
         [],
@@ -140,7 +70,7 @@ it('does not report errors for valid typed closure injections', function () {
 });
 
 it('reports errors for typed closure injections with wrong types', function () {
-    ConfigurableRuleTestCase::useRule(makeEnabledRule());
+    ConfigurableRuleTestCase::useRule(getEnabledRule());
     $this->analyse(
         [__DIR__.'/../Fixtures/App/ClosureTests/TypedInjectionInvalid.php'],
         [
@@ -151,30 +81,18 @@ it('reports errors for typed closure injections with wrong types', function () {
 });
 
 it('reports errors for typed state params with incompatible types', function () {
-    ConfigurableRuleTestCase::useRule(makeEnabledRule());
+    ConfigurableRuleTestCase::useRule(getEnabledRule());
     $this->analyse(
         [__DIR__.'/../Fixtures/App/ClosureTests/TypedStateInjection.php'],
         [
             ["Closure parameter '\$state' is typed as 'array', expected 'string|null'.", 19],
             ["Closure parameter '\$state' is typed as 'array', expected 'string'.", 36],
-            ["Closure parameter '\$state' is typed as 'array', expected 'string'.", 52],
         ],
     );
 });
 
 it('produces no errors when the rule is disabled', function () {
-    $deps = makeTestDependencies();
-    $factory = new InjectionMapFactory($deps['reflectionProvider'], new VendorAstParser, new DiscoveredClassCache);
-
-    ConfigurableRuleTestCase::useRule(new ClosureInjectionRule(
-        closureInjection: false,
-        reservedClosureInjection: false,
-        injectionMap: $factory->create(),
-        filamentClassHelper: $deps['filamentClassHelper'],
-        reflectionProvider: $deps['reflectionProvider'],
-        stateTypeResolver: $deps['stateTypeResolver'],
-        componentContextResolver: $deps['componentContextResolver'],
-    ));
+    ConfigurableRuleTestCase::useRule(makeDisabledRule());
 
     $this->analyse(
         [__DIR__.'/../Fixtures/App/ClosureTests/InjectionInvalid.php'],

@@ -1,0 +1,14 @@
+includes:
+    - ../../extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - ../Fixtures/App/MakeFieldTests
+    scanDirectories:
+        - ../Fixtures/App/Models
+        - ../Fixtures/App/Enums
+    bootstrapFiles:
+        - ../../vendor/autoload.php
+    PhpstanFilament:
+        checkFieldPaths: 2

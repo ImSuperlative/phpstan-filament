@@ -57,6 +57,8 @@ services:
 
     -
         class: ImSuperlative\PhpstanFilament\Rules\ClosureInjection\VendorAstParser
+        arguments:
+            parser: @currentPhpVersionPhpParser
 
     -
         class: ImSuperlative\PhpstanFilament\Rules\ClosureInjection\DiscoveredClassCache

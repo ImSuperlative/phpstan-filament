@@ -15,10 +15,13 @@ use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\NodeFinder;
-use PhpParser\ParserFactory;
+use PhpParser\Parser;
 
 final class VendorAstParser
 {
+    public function __construct(
+        protected readonly Parser $parser,
+    ) {}
     /**
      * Parse resolveDefaultClosureDependencyForEvaluationByName.
      *
@@ -109,9 +112,8 @@ final class VendorAstParser
      */
     protected function parse(string $filePath): array
     {
-        $parser = (new ParserFactory)->createForNewestSupportedVersion();
         $code = file_get_contents($filePath);
-        $stmts = $code !== false ? ($parser->parse($code) ?? []) : [];
+        $stmts = $code !== false ? ($this->parser->parse($code) ?? []) : [];
 
         return [$stmts, new NodeFinder];
     }

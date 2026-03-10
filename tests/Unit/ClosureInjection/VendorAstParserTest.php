@@ -1,9 +1,12 @@
 <?php
 
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\VendorAstParser;
+use PhpParser\ParserFactory;
 
-beforeEach(function () {
-    $this->parser = new VendorAstParser;
+$parser = new VendorAstParser((new ParserFactory)->createForNewestSupportedVersion());
+
+beforeEach(function () use ($parser) {
+    $this->parser = $parser;
 });
 
 it('parses ByName match arms from Component', function () {

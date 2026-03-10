@@ -1,0 +1,3 @@
+parameters:
+    PhpstanFilament:
+        checkFieldPaths: 2

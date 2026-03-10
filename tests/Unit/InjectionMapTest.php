@@ -14,7 +14,8 @@ function getMap(): TypedInjectionMap
 
     if ($map === null) {
         $reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
-        $factory = new InjectionMapFactory($reflectionProvider, new VendorAstParser, new DiscoveredClassCache);
+        $vendorAstParser = new VendorAstParser((new PhpParser\ParserFactory)->createForNewestSupportedVersion());
+        $factory = new InjectionMapFactory($reflectionProvider, $vendorAstParser, new DiscoveredClassCache);
         $map = $factory->create();
     }
 
