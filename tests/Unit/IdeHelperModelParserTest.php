@@ -1,7 +1,7 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
-use ImSuperlative\FilamentPhpstan\Support\IdeHelperModelParser;
+use ImSuperlative\PhpstanFilament\Parser\TypeStringParser;
+use ImSuperlative\PhpstanFilament\Support\IdeHelperModelParser;
 use PHPStan\Parser\Parser;
 use PHPStan\Testing\PHPStanTestCase;
 use PHPStan\Type\Type;

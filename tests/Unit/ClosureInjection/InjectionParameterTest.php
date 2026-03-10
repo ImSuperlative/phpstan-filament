@@ -1,6 +1,6 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\InjectionParameter;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\InjectionParameter;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\StringType;
 

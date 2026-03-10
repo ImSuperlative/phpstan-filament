@@ -1,7 +1,7 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Data\ResolvedSegment;
-use ImSuperlative\FilamentPhpstan\Data\SegmentTag;
+use ImSuperlative\PhpstanFilament\Data\ResolvedSegment;
+use ImSuperlative\PhpstanFilament\Data\SegmentTag;
 use PHPStan\Type\StringType;
 
 it('checks single tag', function () {

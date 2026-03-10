@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Rules;
+namespace ImSuperlative\PhpstanFilament\Rules;
 
-use ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver;
-use ImSuperlative\FilamentPhpstan\Support\AstHelper;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
-use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
+use ImSuperlative\PhpstanFilament\Support\AstHelper;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Identifier;
@@ -84,7 +84,7 @@ final class RelationshipValidationRule implements Rule
             RuleErrorBuilder::message(
                 sprintf("'%s' is not a relationship on %s.", $relationshipName, $modelClass)
             )
-                ->identifier('filamentPhpstan.relationship')
+                ->identifier('PhpstanFilament.relationship')
                 ->build(),
         ];
     }

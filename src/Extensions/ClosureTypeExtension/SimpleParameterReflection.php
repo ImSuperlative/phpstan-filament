@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension;
+namespace ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension;
 
 use PHPStan\Reflection\ParameterReflection;
 use PHPStan\Reflection\PassedByReference;

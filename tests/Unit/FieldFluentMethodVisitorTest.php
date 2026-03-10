@@ -1,6 +1,6 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Parser\FieldFluentMethodVisitor;
+use ImSuperlative\PhpstanFilament\Parser\FieldFluentMethodVisitor;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;

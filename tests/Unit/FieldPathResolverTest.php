@@ -1,8 +1,8 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Data\SegmentTag;
-use ImSuperlative\FilamentPhpstan\Resolvers\FieldPathResolver;
-use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Data\SegmentTag;
+use ImSuperlative\PhpstanFilament\Resolvers\FieldPathResolver;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
 use PHPStan\Analyser\ScopeContext;
 use PHPStan\Analyser\ScopeFactory;
 use PHPStan\Reflection\ReflectionProvider;
@@ -17,6 +17,16 @@ beforeEach(function () {
     );
     $scopeFactory = PHPStanTestCase::getContainer()->getByType(ScopeFactory::class);
     $this->scope = $scopeFactory->create(ScopeContext::create('test.php'));
+
+    // Mirrors Analyser::collectErrors() — suppress E_DEPRECATED from
+    // PHPStan's BetterReflection parsing deprecated constants in stubs.
+    set_error_handler(static function (int $errno) {
+        return $errno === E_DEPRECATED;
+    });
+});
+
+afterEach(function () {
+    restore_error_handler();
 });
 
 it('resolves a simple property field', function () {

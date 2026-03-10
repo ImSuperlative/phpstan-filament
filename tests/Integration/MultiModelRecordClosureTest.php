@@ -1,29 +1,31 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers\RecordClosureHandler;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\Handlers\RecordClosureHandler;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\VerbosityLevel;
 
-beforeEach(function () {
+function createRecordHandler(): RecordClosureHandler
+{
     $reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
-    $this->handler = new RecordClosureHandler(
+
+    return new RecordClosureHandler(
         recordClosure: true,
         filamentClassHelper: new FilamentClassHelper($reflectionProvider),
     );
-});
+}
 
 it('builds a union type from multiple model classes', function () {
-    $context = buildHandlerContext(
+    $handler = createRecordHandler();
+    $result = $handler->resolveType('record', false, buildHandlerContext(
         modelClasses: ['Fixtures\App\Models\Post', 'Fixtures\App\Models\Comment'],
-    );
+    ), null);
 
-    $result = $this->handler->resolveType('record', false, $context, null);
-
-    expect($result)->not->toBeNull();
+    $actual = $result?->describe(VerbosityLevel::precise());
+    unset($handler, $result);
 
     $expected = TypeCombinator::addNull(
         TypeCombinator::union(
@@ -32,33 +34,31 @@ it('builds a union type from multiple model classes', function () {
         ),
     );
 
-    expect($result->describe(VerbosityLevel::precise()))
-        ->toBe($expected->describe(VerbosityLevel::precise()));
+    expect($actual)->toBe($expected->describe(VerbosityLevel::precise()));
 });
 
 it('builds a non-nullable union for table column context', function () {
-    $context = buildHandlerContext(
+    $handler = createRecordHandler();
+    $result = $handler->resolveType('record', false, buildHandlerContext(
         modelClasses: ['Fixtures\App\Models\Post', 'Fixtures\App\Models\Comment'],
         callerClass: 'Filament\Tables\Columns\TextColumn',
-    );
+    ), null);
 
-    $result = $this->handler->resolveType('record', false, $context, null);
-
-    expect($result)->not->toBeNull();
+    $actual = $result?->describe(VerbosityLevel::precise());
+    unset($handler, $result);
 
     $expected = TypeCombinator::union(
         new ObjectType('Fixtures\App\Models\Post'),
         new ObjectType('Fixtures\App\Models\Comment'),
     );
 
-    expect($result->describe(VerbosityLevel::precise()))
-        ->toBe($expected->describe(VerbosityLevel::precise()));
+    expect($actual)->toBe($expected->describe(VerbosityLevel::precise()));
 });
 
 it('returns null when modelClasses is empty', function () {
-    $context = buildHandlerContext(modelClasses: []);
-
-    $result = $this->handler->resolveType('record', false, $context, null);
+    $handler = createRecordHandler();
+    $result = $handler->resolveType('record', false, buildHandlerContext(modelClasses: []), null);
+    unset($handler);
 
     expect($result)->toBeNull();
 });

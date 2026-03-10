@@ -1,15 +1,15 @@
 # Feature: make('field') validation (levels 0/1/2)
-# Enabled by: filamentPhpstan.checkFieldPaths (default: 1)
+# Enabled by: PhpstanFilament.checkFieldPaths (default: 1)
 
 services:
     -
-        class: ImSuperlative\FilamentPhpstan\FieldValidationLevel
-        factory: ImSuperlative\FilamentPhpstan\FieldValidationLevel::from(%filamentPhpstan.checkFieldPaths%)
+        class: ImSuperlative\PhpstanFilament\FieldValidationLevel
+        factory: ImSuperlative\PhpstanFilament\FieldValidationLevel::from(%PhpstanFilament.checkFieldPaths%)
 
     -
-        class: ImSuperlative\FilamentPhpstan\Rules\MakeFieldValidation\AggregateFieldValidator
+        class: ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation\AggregateFieldValidator
 
     -
-        class: ImSuperlative\FilamentPhpstan\Rules\MakeFieldValidation\MakeFieldValidationRule
+        class: ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation\MakeFieldValidationRule
         tags:
             - phpstan.rules.rule

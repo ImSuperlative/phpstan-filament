@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Attributes;
+namespace ImSuperlative\PhpstanFilament\Attributes;
 
 use Attribute;
 

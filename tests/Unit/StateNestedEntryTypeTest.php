@@ -1,6 +1,6 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Tests\TypeInferenceTestCase;
+use ImSuperlative\PhpstanFilament\Tests\TypeInferenceTestCase;
 
 TypeInferenceTestCase::setConfigFiles([
     __DIR__.'/../Fixtures/Config/dot-notation-level3.neon',

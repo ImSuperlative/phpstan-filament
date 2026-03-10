@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Extensions\IdeHelper;
+namespace ImSuperlative\PhpstanFilament\Extensions\IdeHelper;
 
 use PHPStan\Reflection\ClassMemberReflection;
 use PHPStan\Reflection\ClassReflection;

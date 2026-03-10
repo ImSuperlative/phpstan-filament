@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Rules;
+namespace ImSuperlative\PhpstanFilament\Rules;
 
-use ImSuperlative\FilamentPhpstan\Support\AstHelper;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Support\AstHelper;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use PhpParser\Node;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\MethodCall;
@@ -52,7 +52,7 @@ final class RedundantEnumRule implements Rule
             RuleErrorBuilder::message(
                 'Calling ->enum() is unnecessary when ->options() receives an enum class.'
             )
-                ->identifier('filamentPhpstan.redundantEnum')
+                ->identifier('PhpstanFilament.redundantEnum')
                 ->tip('Remove the ->enum() call. When ->options() receives an enum class, it calls ->enum() automatically.')
                 ->build(),
         ];

@@ -1,24 +1,25 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\AnnotationReader;
-use ImSuperlative\FilamentPhpstan\Resolvers\AttributeAnnotationParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\FieldPathResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentChainResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentStateMap;
-use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentTypeNarrower;
-use ImSuperlative\FilamentPhpstan\Resolvers\FormOptionsNarrower;
-use ImSuperlative\FilamentPhpstan\Resolvers\PhpDocAnnotationParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\ResourceModelResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\StateTypeResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\VirtualAnnotationProvider;
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\ClosureInjectionRule;
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\InjectionMapFactory;
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\VendorAstParser;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
-use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
-use ImSuperlative\FilamentPhpstan\Tests\ConfigurableRuleTestCase;
+use ImSuperlative\PhpstanFilament\Parser\TypeStringParser;
+use ImSuperlative\PhpstanFilament\Resolvers\AnnotationReader;
+use ImSuperlative\PhpstanFilament\Resolvers\AttributeAnnotationParser;
+use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\FieldPathResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\FormComponentChainResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\FormComponentStateMap;
+use ImSuperlative\PhpstanFilament\Resolvers\FormComponentTypeNarrower;
+use ImSuperlative\PhpstanFilament\Resolvers\FormOptionsNarrower;
+use ImSuperlative\PhpstanFilament\Resolvers\PhpDocAnnotationParser;
+use ImSuperlative\PhpstanFilament\Resolvers\ResourceModelResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\StateTypeResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\VirtualAnnotationProvider;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\DiscoveredClassCache;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\ClosureInjectionRule;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\InjectionMapFactory;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\VendorAstParser;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Tests\ConfigurableRuleTestCase;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 
@@ -84,7 +85,7 @@ function makeTestDependencies(): array
 function makeEnabledRule(): ClosureInjectionRule
 {
     $deps = makeTestDependencies();
-    $factory = new InjectionMapFactory($deps['reflectionProvider'], new VendorAstParser);
+    $factory = new InjectionMapFactory($deps['reflectionProvider'], new VendorAstParser, new DiscoveredClassCache);
 
     return new ClosureInjectionRule(
         closureInjection: true,
@@ -97,11 +98,8 @@ function makeEnabledRule(): ClosureInjectionRule
     );
 }
 
-beforeEach(function () {
-    ConfigurableRuleTestCase::useRule(makeEnabledRule());
-});
-
 it('does not report errors for valid closure injections', function () {
+    ConfigurableRuleTestCase::useRule(makeEnabledRule());
     $this->analyse(
         [__DIR__.'/../Fixtures/App/ClosureTests/InjectionValid.php'],
         [],
@@ -109,6 +107,7 @@ it('does not report errors for valid closure injections', function () {
 });
 
 it('reports errors for all invalid closure injections', function () {
+    ConfigurableRuleTestCase::useRule(makeEnabledRule());
     $componentParams = '$context, $operation, $get, $livewire, $model, $parentRepeaterItemIndex, $rawState, $record, $set, $state, $component';
     $columnParams = '$livewire, $record, $rowLoop, $state, $table, $column, $value';
     $columnNoValueParams = '$livewire, $record, $rowLoop, $state, $table, $column';
@@ -133,6 +132,7 @@ it('reports errors for all invalid closure injections', function () {
 });
 
 it('does not report errors for valid typed closure injections', function () {
+    ConfigurableRuleTestCase::useRule(makeEnabledRule());
     $this->analyse(
         [__DIR__.'/../Fixtures/App/ClosureTests/TypedInjectionValid.php'],
         [],
@@ -140,6 +140,7 @@ it('does not report errors for valid typed closure injections', function () {
 });
 
 it('reports errors for typed closure injections with wrong types', function () {
+    ConfigurableRuleTestCase::useRule(makeEnabledRule());
     $this->analyse(
         [__DIR__.'/../Fixtures/App/ClosureTests/TypedInjectionInvalid.php'],
         [
@@ -150,6 +151,7 @@ it('reports errors for typed closure injections with wrong types', function () {
 });
 
 it('reports errors for typed state params with incompatible types', function () {
+    ConfigurableRuleTestCase::useRule(makeEnabledRule());
     $this->analyse(
         [__DIR__.'/../Fixtures/App/ClosureTests/TypedStateInjection.php'],
         [
@@ -162,7 +164,7 @@ it('reports errors for typed state params with incompatible types', function () 
 
 it('produces no errors when the rule is disabled', function () {
     $deps = makeTestDependencies();
-    $factory = new InjectionMapFactory($deps['reflectionProvider'], new VendorAstParser);
+    $factory = new InjectionMapFactory($deps['reflectionProvider'], new VendorAstParser, new DiscoveredClassCache);
 
     ConfigurableRuleTestCase::useRule(new ClosureInjectionRule(
         closureInjection: false,

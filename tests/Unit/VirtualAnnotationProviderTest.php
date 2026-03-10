@@ -1,9 +1,9 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Resolvers\ResourceModelResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\VirtualAnnotationProvider;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
-use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Resolvers\ResourceModelResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\VirtualAnnotationProvider;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 

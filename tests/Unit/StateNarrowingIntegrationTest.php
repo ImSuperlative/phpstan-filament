@@ -1,8 +1,8 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentStateMap;
-use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentTypeNarrower;
-use ImSuperlative\FilamentPhpstan\Resolvers\FormOptionsNarrower;
+use ImSuperlative\PhpstanFilament\Resolvers\FormComponentStateMap;
+use ImSuperlative\PhpstanFilament\Resolvers\FormComponentTypeNarrower;
+use ImSuperlative\PhpstanFilament\Resolvers\FormOptionsNarrower;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 use PHPStan\Type\VerbosityLevel;

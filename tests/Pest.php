@@ -1,7 +1,14 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Tests\ConfigurableRuleTestCase;
-use ImSuperlative\FilamentPhpstan\Tests\TypeInferenceTestCase;
+use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\ClosureHandlerContext;
+use ImSuperlative\PhpstanFilament\Tests\ConfigurableRuleTestCase;
+use ImSuperlative\PhpstanFilament\Tests\TypeInferenceTestCase;
+use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Identifier;
+use PHPStan\Analyser\ScopeContext;
+use PHPStan\Analyser\ScopeFactory;
+use PHPStan\Testing\PHPStanTestCase;
 
 pest()->extend(TypeInferenceTestCase::class)
     ->in('Unit');
@@ -18,16 +25,16 @@ function buildHandlerContext(
     array $modelClasses = [],
     ?string $callerClass = null,
     ?string $declaringClass = null,
-): \ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\ClosureHandlerContext {
-    $scopeFactory = \PHPStan\Testing\PHPStanTestCase::getContainer()->getByType(\PHPStan\Analyser\ScopeFactory::class);
-    $scope = $scopeFactory->create(\PHPStan\Analyser\ScopeContext::create('test.php'));
+): ClosureHandlerContext {
+    $scopeFactory = PHPStanTestCase::getContainer()->getByType(ScopeFactory::class);
+    $scope = $scopeFactory->create(ScopeContext::create('test.php'));
 
-    $methodCall = new \PhpParser\Node\Expr\MethodCall(
-        new \PhpParser\Node\Expr\Variable('this'),
-        new \PhpParser\Node\Identifier('test'),
+    $methodCall = new MethodCall(
+        new Variable('this'),
+        new Identifier('test'),
     );
 
-    return new \ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\ClosureHandlerContext(
+    return new ClosureHandlerContext(
         scope: $scope,
         methodCall: $methodCall,
         modelClasses: $modelClasses,

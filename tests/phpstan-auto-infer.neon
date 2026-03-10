@@ -1,5 +1,5 @@
 parameters:
-    filamentPhpstan:
+    PhpstanFilament:
         autoInferContext: true
         filamentPath:
-            - /Users/super/code/packages/filament-phpstan/tests/Fixtures
+            - /Users/super/code/packages/phpstan-filament/tests/Fixtures

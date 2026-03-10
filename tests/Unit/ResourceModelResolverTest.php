@@ -4,12 +4,12 @@
 
 use Fixtures\App\Models\Post;
 use Fixtures\App\Resources\PostResource\RelationManagers\CommentsRelationManager;
-use ImSuperlative\FilamentPhpstan\Resolvers\ResourceModelResolver;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
-use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
-use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestEditPage;
-use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestModel;
-use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestResource;
+use ImSuperlative\PhpstanFilament\Resolvers\ResourceModelResolver;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Tests\Fixtures\Stubs\TestEditPage;
+use ImSuperlative\PhpstanFilament\Tests\Fixtures\Stubs\TestModel;
+use ImSuperlative\PhpstanFilament\Tests\Fixtures\Stubs\TestResource;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 

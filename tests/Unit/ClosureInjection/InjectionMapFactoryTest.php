@@ -1,9 +1,10 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\InjectionMapFactory;
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\InjectionParameter;
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\TypedInjectionMap;
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\VendorAstParser;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\InjectionMapFactory;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\InjectionParameter;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\TypedInjectionMap;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\DiscoveredClassCache;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\VendorAstParser;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 use PHPStan\Type\ObjectType;
@@ -14,7 +15,7 @@ function getSharedMap(): TypedInjectionMap
 
     if ($map === null) {
         $reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
-        $factory = new InjectionMapFactory($reflectionProvider, new VendorAstParser);
+        $factory = new InjectionMapFactory($reflectionProvider, new VendorAstParser, new DiscoveredClassCache);
         $map = $factory->create();
     }
 
@@ -93,7 +94,7 @@ it('preserves method additions', function () {
 
 it('merges user-provided closureInjectionMethods', function () {
     $reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
-    $factory = new InjectionMapFactory($reflectionProvider, new VendorAstParser, [
+    $factory = new InjectionMapFactory($reflectionProvider, new VendorAstParser, new DiscoveredClassCache, [
         'customMethod' => ['customParam'],
     ]);
     $map = $factory->create();

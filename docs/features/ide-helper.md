@@ -34,6 +34,6 @@ By default, the extension looks for `_ide_helper_models.php` in the project root
 
 ```neon
 parameters:
-    filamentPhpstan:
+    PhpstanFilament:
         ideHelperPath: 'storage/_ide_helper_models.php'
 ```

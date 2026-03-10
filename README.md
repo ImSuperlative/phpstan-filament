@@ -1,4 +1,4 @@
-# filament-phpstan
+# phpstan-filament
 
 A PHPStan extension for [Filament](https://filamentphp.com/) that provides type inference for closures, validation rules, and IDE helper integration.
 
@@ -11,14 +11,14 @@ A PHPStan extension for [Filament](https://filamentphp.com/) that provides type 
 ## Installation
 
 ```bash
-composer require --dev imsuperlative/filament-phpstan
+composer require --dev imsuperlative/phpstan-filament
 ```
 
 If you have `phpstan/extension-installer`, the extension is registered automatically. Otherwise, add it to your `phpstan.neon`:
 
 ```neon
 includes:
-    - vendor/imsuperlative/filament-phpstan/extension.neon
+    - vendor/imsuperlative/phpstan-filament/extension.neon
 ```
 
 ## Configuration
@@ -27,7 +27,7 @@ All features are enabled by default. Toggle them in your `phpstan.neon`:
 
 ```neon
 parameters:
-    filamentPhpstan:
+    PhpstanFilament:
         typeRecordClosures: true
         typeStateClosures: true
         typeOperationLiterals: true

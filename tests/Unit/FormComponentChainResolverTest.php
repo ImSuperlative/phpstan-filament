@@ -1,8 +1,8 @@
 <?php
 
 use Fixtures\App\Enums\PostStatus;
-use ImSuperlative\FilamentPhpstan\Data\ChainAnalysis;
-use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentChainResolver;
+use ImSuperlative\PhpstanFilament\Data\ChainAnalysis;
+use ImSuperlative\PhpstanFilament\Resolvers\FormComponentChainResolver;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ArrayItem;

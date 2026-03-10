@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Parser;
+namespace ImSuperlative\PhpstanFilament\Parser;
 
-use ImSuperlative\FilamentPhpstan\Support\AstHelper;
+use ImSuperlative\PhpstanFilament\Support\AstHelper;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;

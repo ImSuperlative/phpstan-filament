@@ -1,2 +1,2 @@
 # Feature #7: Action $data typing
-# Enabled by: filamentPhpstan.typeActionData (default: true)
+# Enabled by: PhpstanFilament.typeActionData (default: true)

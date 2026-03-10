@@ -1,5 +1,5 @@
 {
-    "name": "imsuperlative/filament-phpstan",
+    "name": "imsuperlative/phpstan-filament",
     "description": "PHPStan extension that types $this in Filament PHP",
     "type": "phpstan-extension",
     "license": "MIT",
@@ -24,14 +24,21 @@
             "src/Support/helpers.php"
         ],
         "psr-4": {
-            "ImSuperlative\\FilamentPhpstan\\": "src/"
+            "ImSuperlative\\PhpstanFilament\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "ImSuperlative\\FilamentPhpstan\\Tests\\": "tests/",
+            "ImSuperlative\\PhpstanFilament\\Tests\\": "tests/",
             "Fixtures\\App\\": "tests/Fixtures/App/"
-        }
+        },
+        "exclude-from-classmap": [
+            "tests/Fixtures/App/Models/_ide_helper_models.php",
+            "tests/Fixtures/App/ClosureTests/",
+            "tests/Fixtures/SmokeTest.php",
+            "tests/Fixtures/SchemaCallSite.php",
+            "tests/Fixtures/OperationLiteralAssertions.php"
+        ]
     },
     "scripts": {
         "phpstan": "vendor/bin/phpstan --configuration=phpstan.neon",

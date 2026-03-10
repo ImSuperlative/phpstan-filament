@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Extensions\IdeHelper;
+namespace ImSuperlative\PhpstanFilament\Extensions\IdeHelper;
 
-use ImSuperlative\FilamentPhpstan\Support\IdeHelperRegistry;
+use ImSuperlative\PhpstanFilament\Support\IdeHelperRegistry;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\PropertiesClassReflectionExtension;
 use PHPStan\Reflection\PropertyReflection;

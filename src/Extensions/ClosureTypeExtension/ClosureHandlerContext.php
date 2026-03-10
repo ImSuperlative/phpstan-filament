@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension;
+namespace ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension;
 
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;

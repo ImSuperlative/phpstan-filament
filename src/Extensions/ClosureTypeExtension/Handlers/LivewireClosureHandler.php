@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers;
+namespace ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\Handlers;
 
-use ImSuperlative\FilamentPhpstan\Data\FilamentPageAnnotation;
-use ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\ClosureHandlerContext;
-use ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\ClosureParameterHandler;
-use ImSuperlative\FilamentPhpstan\Resolvers\AnnotationReader;
-use ImSuperlative\FilamentPhpstan\Resolvers\VirtualAnnotationProvider;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Data\FilamentPageAnnotation;
+use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\ClosureHandlerContext;
+use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\ClosureParameterHandler;
+use ImSuperlative\PhpstanFilament\Resolvers\AnnotationReader;
+use ImSuperlative\PhpstanFilament\Resolvers\VirtualAnnotationProvider;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;

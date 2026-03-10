@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Resolvers;
+namespace ImSuperlative\PhpstanFilament\Resolvers;
 
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
-use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
 use PHPStan\Reflection\ReflectionProvider;
 
 final class ResourceModelResolver

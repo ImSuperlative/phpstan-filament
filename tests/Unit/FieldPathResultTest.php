@@ -1,8 +1,8 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Data\FieldPathResult;
-use ImSuperlative\FilamentPhpstan\Data\ResolvedSegment;
-use ImSuperlative\FilamentPhpstan\Data\SegmentTag;
+use ImSuperlative\PhpstanFilament\Data\FieldPathResult;
+use ImSuperlative\PhpstanFilament\Data\ResolvedSegment;
+use ImSuperlative\PhpstanFilament\Data\SegmentTag;
 use PHPStan\Type\StringType;
 
 it('reports fully resolved path', function () {

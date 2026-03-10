@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Resolvers;
+namespace ImSuperlative\PhpstanFilament\Resolvers;
 
-use ImSuperlative\FilamentPhpstan\Data\FilamentContext;
-use ImSuperlative\FilamentPhpstan\Data\FilamentPageAnnotation;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
-use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Data\FilamentContext;
+use ImSuperlative\PhpstanFilament\Data\FilamentPageAnnotation;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;

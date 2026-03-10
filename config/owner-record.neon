@@ -1,5 +1,5 @@
 # Feature #1: getOwnerRecord() return type inference
-# Enabled by: filamentPhpstan.typeOwnerRecord (default: true)
+# Enabled by: PhpstanFilament.typeOwnerRecord (default: true)
 
 parameters:
     stubFiles:
@@ -8,17 +8,17 @@ parameters:
 
 services:
     -
-        class: ImSuperlative\FilamentPhpstan\Extensions\OwnerRecordReturnTypeExtension
+        class: ImSuperlative\PhpstanFilament\Extensions\OwnerRecordReturnTypeExtension
         tags:
             - phpstan.broker.dynamicMethodReturnTypeExtension
         arguments:
             className: Filament\Resources\RelationManagers\RelationManager
-            enabled: %filamentPhpstan.typeOwnerRecord%
+            enabled: %PhpstanFilament.typeOwnerRecord%
 
     -
-        class: ImSuperlative\FilamentPhpstan\Extensions\OwnerRecordReturnTypeExtension
+        class: ImSuperlative\PhpstanFilament\Extensions\OwnerRecordReturnTypeExtension
         tags:
             - phpstan.broker.dynamicMethodReturnTypeExtension
         arguments:
             className: Filament\Resources\Pages\ManageRelatedRecords
-            enabled: %filamentPhpstan.typeOwnerRecord%
+            enabled: %PhpstanFilament.typeOwnerRecord%

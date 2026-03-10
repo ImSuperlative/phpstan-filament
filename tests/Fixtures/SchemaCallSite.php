@@ -3,10 +3,10 @@
 // tests/Fixtures/SchemaCallSite.php
 // This fixture is analysed by PHPStan to test the collector
 
-namespace ImSuperlative\FilamentPhpstan\Tests\Fixtures;
+namespace ImSuperlative\PhpstanFilament\Tests\Fixtures;
 
 use Filament\Schemas\Schema;
-use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestResource;
+use ImSuperlative\PhpstanFilament\Tests\Fixtures\Stubs\TestResource;
 
 class TestSchemaClass
 {

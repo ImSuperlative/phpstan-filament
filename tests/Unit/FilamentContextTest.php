@@ -2,7 +2,7 @@
 
 // tests/Unit/FilamentContextTest.php
 
-use ImSuperlative\FilamentPhpstan\Data\FilamentContext;
+use ImSuperlative\PhpstanFilament\Data\FilamentContext;
 
 it('creates a context with all fields', function () {
     $context = new FilamentContext(

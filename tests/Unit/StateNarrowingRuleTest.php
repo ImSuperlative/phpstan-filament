@@ -1,6 +1,6 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Data\StateNarrowingRule;
+use ImSuperlative\PhpstanFilament\Data\StateNarrowingRule;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\VerbosityLevel;

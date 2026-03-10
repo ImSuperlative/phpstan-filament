@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Resolvers;
+namespace ImSuperlative\PhpstanFilament\Resolvers;
 
-use ImSuperlative\FilamentPhpstan\Data\ChainAnalysis;
-use ImSuperlative\FilamentPhpstan\Support\AstHelper;
+use ImSuperlative\PhpstanFilament\Data\ChainAnalysis;
+use ImSuperlative\PhpstanFilament\Support\AstHelper;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ClassConstFetch;

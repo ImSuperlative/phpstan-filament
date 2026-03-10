@@ -2,7 +2,7 @@
 
 // tests/Unit/ComponentStateMapTest.php
 
-use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentStateMap;
+use ImSuperlative\PhpstanFilament\Resolvers\FormComponentStateMap;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 use PHPStan\Type\VerbosityLevel;

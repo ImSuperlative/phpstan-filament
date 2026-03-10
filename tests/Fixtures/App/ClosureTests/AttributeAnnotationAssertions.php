@@ -6,7 +6,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 use Fixtures\App\Resources\PostResource\Pages\CreatePost;
 use Fixtures\App\Resources\PostResource\Pages\EditPost;
-use ImSuperlative\FilamentPhpstan\Attributes\FilamentPage;
+use ImSuperlative\PhpstanFilament\Attributes\FilamentPage;
 
 use function PHPStan\Testing\assertType;
 

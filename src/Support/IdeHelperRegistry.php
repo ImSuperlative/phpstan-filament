@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Support;
+namespace ImSuperlative\PhpstanFilament\Support;
 
-use ImSuperlative\FilamentPhpstan\Data\IdeHelperModelData;
+use ImSuperlative\PhpstanFilament\Data\IdeHelperModelData;
 
 final class IdeHelperRegistry
 {

@@ -1,2 +1,2 @@
 # Feature #8: Action $records typing
-# Enabled by: filamentPhpstan.typeActionRecords (default: true)
+# Enabled by: PhpstanFilament.typeActionRecords (default: true)

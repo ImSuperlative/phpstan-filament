@@ -2,7 +2,7 @@
 
 // tests/Unit/ChainAnalysisTest.php
 
-use ImSuperlative\FilamentPhpstan\Data\ChainAnalysis;
+use ImSuperlative\PhpstanFilament\Data\ChainAnalysis;
 
 it('stores all chain analysis fields', function () {
     $analysis = new ChainAnalysis(

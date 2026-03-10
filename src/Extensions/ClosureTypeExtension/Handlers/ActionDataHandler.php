@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\Handlers;
+namespace ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\Handlers;
 
-use ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\ClosureHandlerContext;
-use ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\ClosureParameterHandler;
-use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentChainResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentStateMap;
-use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentTypeNarrower;
-use ImSuperlative\FilamentPhpstan\Support\AstHelper;
+use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\ClosureHandlerContext;
+use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\ClosureParameterHandler;
+use ImSuperlative\PhpstanFilament\Resolvers\FormComponentChainResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\FormComponentStateMap;
+use ImSuperlative\PhpstanFilament\Resolvers\FormComponentTypeNarrower;
+use ImSuperlative\PhpstanFilament\Support\AstHelper;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\MethodCall;

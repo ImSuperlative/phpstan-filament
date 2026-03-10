@@ -1,6 +1,6 @@
 <?php
 
-namespace ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs;
+namespace ImSuperlative\PhpstanFilament\Tests\Fixtures\Stubs;
 
 use Filament\Resources\Pages\EditRecord;
 

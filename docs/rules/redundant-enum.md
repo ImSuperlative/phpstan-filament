@@ -34,7 +34,7 @@ Applies to components with the `HasOptions` trait: `Select`, `Radio`, `CheckboxL
 
 ## Identifier
 
-**Identifier:** `filamentPhpstan.redundantEnum`
+**Identifier:** `PhpstanFilament.redundantEnum`
 
 **Tip:** "Remove the ->enum() call. When ->options() receives an enum class, it calls ->enum() automatically."
 
@@ -43,5 +43,5 @@ Applies to components with the `HasOptions` trait: `Select`, `Radio`, `CheckboxL
 ```neon
 parameters:
     ignoreErrors:
-        - identifier: filamentPhpstan.redundantEnum
+        - identifier: PhpstanFilament.redundantEnum
 ```

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Extensions;
+namespace ImSuperlative\PhpstanFilament\Extensions;
 
-use ImSuperlative\FilamentPhpstan\Resolvers\ResourceModelResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\ResourceModelResolver;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\MethodReflection;

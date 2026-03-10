@@ -2,7 +2,7 @@
 
 namespace Fixtures\App\Attributes;
 
-use ImSuperlative\FilamentPhpstan\Attributes\FilamentModel;
+use ImSuperlative\PhpstanFilament\Attributes\FilamentModel;
 
 class MethodLevelAnnotation
 {

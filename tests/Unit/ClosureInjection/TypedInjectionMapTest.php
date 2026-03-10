@@ -1,7 +1,7 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\InjectionParameter;
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\TypedInjectionMap;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\InjectionParameter;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\TypedInjectionMap;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 use PHPStan\Type\MixedType;

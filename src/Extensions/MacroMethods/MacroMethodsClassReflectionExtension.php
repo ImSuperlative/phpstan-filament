@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Extensions\MacroMethods;
+namespace ImSuperlative\PhpstanFilament\Extensions\MacroMethods;
 
 use Closure;
 use PHPStan\PhpDoc\StubFilesExtension;

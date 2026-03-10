@@ -4,10 +4,10 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Resolvers;
+namespace ImSuperlative\PhpstanFilament\Resolvers;
 
-use ImSuperlative\FilamentPhpstan\Data\ChainAnalysis;
-use ImSuperlative\FilamentPhpstan\Data\StateNarrowingRule;
+use ImSuperlative\PhpstanFilament\Data\ChainAnalysis;
+use ImSuperlative\PhpstanFilament\Data\StateNarrowingRule;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\FloatType;

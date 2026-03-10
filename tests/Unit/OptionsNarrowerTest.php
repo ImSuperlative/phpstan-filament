@@ -1,7 +1,7 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Resolvers\FormOptionsNarrower;
-use ImSuperlative\FilamentPhpstan\Tests\TypeInferenceTestCase;
+use ImSuperlative\PhpstanFilament\Resolvers\FormOptionsNarrower;
+use ImSuperlative\PhpstanFilament\Tests\TypeInferenceTestCase;
 use PHPStan\Type\VerbosityLevel;
 
 describe('enum narrowing', function () {

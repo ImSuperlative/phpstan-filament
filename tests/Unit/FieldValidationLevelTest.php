@@ -1,6 +1,6 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\FieldValidationLevel;
+use ImSuperlative\PhpstanFilament\FieldValidationLevel;
 
 it('creates from int value', function () {
     expect(FieldValidationLevel::from(0))->toBe(FieldValidationLevel::Level_0)

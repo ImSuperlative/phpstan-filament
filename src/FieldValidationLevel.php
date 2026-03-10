@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan;
+namespace ImSuperlative\PhpstanFilament;
 
 enum FieldValidationLevel: int
 {

@@ -2,7 +2,7 @@
 
 // tests/Fixtures/SmokeTest.php
 
-namespace ImSuperlative\FilamentPhpstan\Tests\Fixtures;
+namespace ImSuperlative\PhpstanFilament\Tests\Fixtures;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;

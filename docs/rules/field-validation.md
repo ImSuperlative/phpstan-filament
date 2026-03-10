@@ -177,25 +177,25 @@ No annotations needed — the model context is propagated from the call site.
 ## Inline ignores
 
 ```php
-TextColumn::make('custom_field'), // @phpstan-ignore filamentPhpstan.columnName
+TextColumn::make('custom_field'), // @phpstan-ignore PhpstanFilament.columnName
 ```
 
 Or disable entirely:
 
 ```neon
 parameters:
-    filamentPhpstan:
+    PhpstanFilament:
         checkFieldPaths: 0
 ```
 
 ## Identifier
 
-**Identifier:** `filamentPhpstan.columnName`
+**Identifier:** `PhpstanFilament.columnName`
 
 ## Ignoring rules
 
 ```neon
 parameters:
     ignoreErrors:
-        - identifier: filamentPhpstan.columnName
+        - identifier: PhpstanFilament.columnName
 ```

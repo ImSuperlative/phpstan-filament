@@ -1,6 +1,6 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\VendorAstParser;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\VendorAstParser;
 
 beforeEach(function () {
     $this->parser = new VendorAstParser;

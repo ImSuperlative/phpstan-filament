@@ -1,11 +1,11 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Data\IdeHelperMethodData;
-use ImSuperlative\FilamentPhpstan\Data\IdeHelperModelData;
-use ImSuperlative\FilamentPhpstan\Extensions\IdeHelper\IdeHelperMethodsExtension;
-use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
-use ImSuperlative\FilamentPhpstan\Support\IdeHelperModelParser;
-use ImSuperlative\FilamentPhpstan\Support\IdeHelperRegistry;
+use ImSuperlative\PhpstanFilament\Data\IdeHelperMethodData;
+use ImSuperlative\PhpstanFilament\Data\IdeHelperModelData;
+use ImSuperlative\PhpstanFilament\Extensions\IdeHelper\IdeHelperMethodsExtension;
+use ImSuperlative\PhpstanFilament\Parser\TypeStringParser;
+use ImSuperlative\PhpstanFilament\Support\IdeHelperModelParser;
+use ImSuperlative\PhpstanFilament\Support\IdeHelperRegistry;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 use PHPStan\Type\ObjectType;

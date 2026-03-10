@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Resolvers;
+namespace ImSuperlative\PhpstanFilament\Resolvers;
 
-use ImSuperlative\FilamentPhpstan\Data\FilamentFieldAnnotation;
-use ImSuperlative\FilamentPhpstan\Data\FilamentModelAnnotation;
-use ImSuperlative\FilamentPhpstan\Data\FilamentPageAnnotation;
-use ImSuperlative\FilamentPhpstan\Data\FilamentStateAnnotation;
-use ImSuperlative\FilamentPhpstan\Data\FilamentTagAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FilamentFieldAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FilamentModelAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FilamentPageAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FilamentStateAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FilamentTagAnnotation;
 use PHPStan\Reflection\ClassReflection;
 
 final class AnnotationReader implements AnnotationParser
@@ -53,13 +53,13 @@ final class AnnotationReader implements AnnotationParser
 
     protected function getPhpDoc(ClassReflection $class, ?string $method): ?string
     {
-        if ($method !== null) {
-            $methodReflection = $class->getNativeReflection()->getMethod($method);
+        $reflection = $class->getNativeReflection();
 
-            return $methodReflection->getDocComment() ?: null;
-        }
+        $docComment = $method !== null
+            ? $reflection->getMethod($method)->getDocComment()
+            : $reflection->getDocComment();
 
-        return $class->getNativeReflection()->getDocComment() ?: null;
+        return $docComment ?: null;
     }
 
     protected function readPhpDocModel(ClassReflection $class, ?string $method): ?FilamentModelAnnotation

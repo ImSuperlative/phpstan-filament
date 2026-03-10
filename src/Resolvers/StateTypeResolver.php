@@ -4,11 +4,11 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Resolvers;
+namespace ImSuperlative\PhpstanFilament\Resolvers;
 
-use ImSuperlative\FilamentPhpstan\Data\ChainAnalysis;
-use ImSuperlative\FilamentPhpstan\Support\AstHelper;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Data\ChainAnalysis;
+use ImSuperlative\PhpstanFilament\Support\AstHelper;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ReflectionProvider;

@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Resolvers;
+namespace ImSuperlative\PhpstanFilament\Resolvers;
 
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ArrayType;

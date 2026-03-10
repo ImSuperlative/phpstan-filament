@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Resolvers;
+namespace ImSuperlative\PhpstanFilament\Resolvers;
 
-use ImSuperlative\FilamentPhpstan\Data\FilamentPageAnnotation;
-use ImSuperlative\FilamentPhpstan\Support\NamespaceHelper;
+use ImSuperlative\PhpstanFilament\Data\FilamentPageAnnotation;
+use ImSuperlative\PhpstanFilament\Support\NamespaceHelper;
 use PhpParser\Node;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;

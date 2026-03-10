@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Support;
+namespace ImSuperlative\PhpstanFilament\Support;
 
-use ImSuperlative\FilamentPhpstan\Data\ChainWalkResult;
+use ImSuperlative\PhpstanFilament\Data\ChainWalkResult;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ArrowFunction;

@@ -26,12 +26,12 @@ Select::make('author_id')
 
 ## Identifier
 
-**Identifier:** `filamentPhpstan.relationship`
+**Identifier:** `PhpstanFilament.relationship`
 
 ## Ignoring rules
 
 ```neon
 parameters:
     ignoreErrors:
-        - identifier: filamentPhpstan.relationship
+        - identifier: PhpstanFilament.relationship
 ```

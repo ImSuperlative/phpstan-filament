@@ -1,11 +1,11 @@
 # Feature #9: Closure injection validation
-# Enabled by: filamentPhpstan.checkClosureInjection (default: true)
+# Enabled by: PhpstanFilament.checkClosureInjection (default: true)
 
 services:
     -
-        class: ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\ClosureInjectionRule
+        class: ImSuperlative\PhpstanFilament\Rules\ClosureInjection\ClosureInjectionRule
         tags:
             - phpstan.rules.rule
         arguments:
-            closureInjection: %filamentPhpstan.checkClosureInjection%
-            reservedClosureInjection: %filamentPhpstan.checkReservedClosureInjection%
+            closureInjection: %PhpstanFilament.checkClosureInjection%
+            reservedClosureInjection: %PhpstanFilament.checkReservedClosureInjection%

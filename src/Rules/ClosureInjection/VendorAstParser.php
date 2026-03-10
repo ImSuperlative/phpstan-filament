@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Rules\ClosureInjection;
+namespace ImSuperlative\PhpstanFilament\Rules\ClosureInjection;
 
-use ImSuperlative\FilamentPhpstan\Support\NamespaceHelper;
+use ImSuperlative\PhpstanFilament\Support\NamespaceHelper;
 use PhpParser\Node;
 use PhpParser\Node\Expr\Match_;
 use PhpParser\Node\Expr\MethodCall;

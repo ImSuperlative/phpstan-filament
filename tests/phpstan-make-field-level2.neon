@@ -10,5 +10,5 @@ parameters:
         - Fixtures/App/Enums
     bootstrapFiles:
         - ../vendor/autoload.php
-    filamentPhpstan:
+    PhpstanFilament:
         checkFieldPaths: 2

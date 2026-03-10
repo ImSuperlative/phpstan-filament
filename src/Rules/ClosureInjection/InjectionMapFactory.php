@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Rules\ClosureInjection;
+namespace ImSuperlative\PhpstanFilament\Rules\ClosureInjection;
 
 use Composer\Autoload\ClassLoader;
 use PHPStan\Reflection\ReflectionProvider;
@@ -60,6 +60,7 @@ final class InjectionMapFactory
     public function __construct(
         protected readonly ReflectionProvider $reflectionProvider,
         protected readonly VendorAstParser $vendorAstParser,
+        protected readonly DiscoveredClassCache $discoveredClassCache,
         /** @var array<string, list<string>> */
         protected readonly array $userMethodAdditions = [],
     ) {}
@@ -104,6 +105,27 @@ final class InjectionMapFactory
      */
     protected function discoverClasses(): array
     {
+        $candidates = [];
+        if ($this->discoveredClassCache->isRunningTest()) {
+            $candidates = $this->discoveredClassCache->get();
+        }
+
+        if ($candidates === []) {
+            $candidates = $this->scanCandidates();
+        }
+
+        return $this->filterByReflection($candidates);
+    }
+
+    /**
+     * Scan vendor classmap for Filament classes whose source mentions
+     * the target method. This is the expensive I/O step that the
+     * test cache eliminates.
+     *
+     * @return array<class-string, string> className => filePath
+     */
+    protected function scanCandidates(): array
+    {
         $vendorPath = $this->resolveVendorPath();
         $classmap = $vendorPath.'/composer/autoload_classmap.php';
 
@@ -111,7 +133,7 @@ final class InjectionMapFactory
             return [];
         }
 
-        $classes = [];
+        $candidates = [];
         $method = 'resolveDefaultClosureDependencyForEvaluationByName';
 
         foreach (require $classmap as $class => $file) {
@@ -122,16 +144,32 @@ final class InjectionMapFactory
                 continue;
             }
 
-            // Cheap file content check — avoids loading PHPStan reflections for 1000+ classes
             if (! str_contains((string) file_get_contents($file), $method)) {
                 continue;
             }
 
+            $candidates[$class] = $file;
+        }
+
+        return $candidates;
+    }
+
+    /**
+     * Filter candidates to only those that declare the method themselves.
+     *
+     * @param  array<class-string, string>  $candidates
+     * @return array<class-string, string>
+     */
+    protected function filterByReflection(array $candidates): array
+    {
+        $classes = [];
+        $method = 'resolveDefaultClosureDependencyForEvaluationByName';
+
+        foreach ($candidates as $class => $file) {
             if (! $this->reflectionProvider->hasClass($class)) {
                 continue;
             }
 
-            // Only include classes that declare the method themselves (not just inherit it)
             $ref = $this->reflectionProvider->getClass($class);
 
             if (

@@ -2,5 +2,5 @@ includes:
     - ../../../extension.neon
 
 parameters:
-    filamentPhpstan:
+    PhpstanFilament:
         checkFieldPaths: 3

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Support;
+namespace ImSuperlative\PhpstanFilament\Support;
 
-use ImSuperlative\FilamentPhpstan\Data\IdeHelperMethodData;
-use ImSuperlative\FilamentPhpstan\Data\IdeHelperModelData;
-use ImSuperlative\FilamentPhpstan\Data\IdeHelperParameterData;
-use ImSuperlative\FilamentPhpstan\Data\IdeHelperPropertyData;
+use ImSuperlative\PhpstanFilament\Data\IdeHelperMethodData;
+use ImSuperlative\PhpstanFilament\Data\IdeHelperModelData;
+use ImSuperlative\PhpstanFilament\Data\IdeHelperParameterData;
+use ImSuperlative\PhpstanFilament\Data\IdeHelperPropertyData;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Use_;

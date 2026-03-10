@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Resolvers;
+namespace ImSuperlative\PhpstanFilament\Resolvers;
 
-use ImSuperlative\FilamentPhpstan\Data\FilamentFieldAnnotation;
-use ImSuperlative\FilamentPhpstan\Data\FilamentModelAnnotation;
-use ImSuperlative\FilamentPhpstan\Data\FilamentPageAnnotation;
-use ImSuperlative\FilamentPhpstan\Data\FilamentStateAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FilamentFieldAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FilamentModelAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FilamentPageAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FilamentStateAnnotation;
 use PHPStan\Reflection\ClassReflection;
 
 interface AnnotationParser

@@ -11,7 +11,7 @@ Pre-scans your project for `::configure()` call sites to automatically infer mod
 
 ```neon
 parameters:
-    filamentPhpstan:
+    PhpstanFilament:
         autoInferContext: true
         filamentPath:
             - app/Filament

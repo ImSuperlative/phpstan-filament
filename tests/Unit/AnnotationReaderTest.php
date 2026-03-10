@@ -2,9 +2,9 @@
 
 // tests/Unit/PhpDocAnnotationParserTest.php
 
-use ImSuperlative\FilamentPhpstan\Data\FilamentModelAnnotation;
-use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\PhpDocAnnotationParser;
+use ImSuperlative\PhpstanFilament\Data\FilamentModelAnnotation;
+use ImSuperlative\PhpstanFilament\Parser\TypeStringParser;
+use ImSuperlative\PhpstanFilament\Resolvers\PhpDocAnnotationParser;
 
 beforeEach(function () {
     $typeStringParser = TypeStringParser::make();

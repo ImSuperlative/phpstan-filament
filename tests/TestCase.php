@@ -1,6 +1,6 @@
 <?php
 
-namespace ImSuperlative\FilamentPhpstan\Tests;
+namespace ImSuperlative\PhpstanFilament\Tests;
 
 use Orchestra\Testbench\TestCase as BaseTestCase;
 

@@ -1,11 +1,11 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Data\FilamentFieldAnnotation;
-use ImSuperlative\FilamentPhpstan\Data\FilamentModelAnnotation;
-use ImSuperlative\FilamentPhpstan\Data\FilamentPageAnnotation;
-use ImSuperlative\FilamentPhpstan\Data\FilamentStateAnnotation;
-use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\AttributeAnnotationParser;
+use ImSuperlative\PhpstanFilament\Data\FilamentFieldAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FilamentModelAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FilamentPageAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FilamentStateAnnotation;
+use ImSuperlative\PhpstanFilament\Parser\TypeStringParser;
+use ImSuperlative\PhpstanFilament\Resolvers\AttributeAnnotationParser;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 

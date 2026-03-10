@@ -82,7 +82,7 @@ Override or extend the valid injection parameters for specific methods. This is 
 
 ```neon
 parameters:
-    filamentPhpstan:
+    PhpstanFilament:
         closureInjectionMethods:
             afterStateUpdated: [old, oldRaw]
             customFilterUsing: [query, search]
@@ -97,14 +97,14 @@ User-defined methods take priority over built-in ones, so this can also override
 
 | Identifier                                  | Trigger                         |
 |---------------------------------------------|---------------------------------|
-| `filamentPhpstan.closureInjection.name`     | Unknown parameter name          |
-| `filamentPhpstan.closureInjection.type`     | Incompatible type hint          |
-| `filamentPhpstan.closureInjection.reserved` | Reserved name conflict (opt-in) |
+| `PhpstanFilament.closureInjection.name`     | Unknown parameter name          |
+| `PhpstanFilament.closureInjection.type`     | Incompatible type hint          |
+| `PhpstanFilament.closureInjection.reserved` | Reserved name conflict (opt-in) |
 
 ## Ignoring rules
 
 ```neon
 parameters:
     ignoreErrors:
-        - identifier: filamentPhpstan.closureInjection.name
+        - identifier: PhpstanFilament.closureInjection.name
 ```

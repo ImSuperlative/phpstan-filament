@@ -1,7 +1,7 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Data\ChainWalkResult;
-use ImSuperlative\FilamentPhpstan\Support\AstHelper;
+use ImSuperlative\PhpstanFilament\Data\ChainWalkResult;
+use ImSuperlative\PhpstanFilament\Support\AstHelper;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;

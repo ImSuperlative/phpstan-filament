@@ -1,10 +1,10 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Data\FilamentModelAnnotation;
-use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\AnnotationReader;
-use ImSuperlative\FilamentPhpstan\Resolvers\AttributeAnnotationParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\PhpDocAnnotationParser;
+use ImSuperlative\PhpstanFilament\Data\FilamentModelAnnotation;
+use ImSuperlative\PhpstanFilament\Parser\TypeStringParser;
+use ImSuperlative\PhpstanFilament\Resolvers\AnnotationReader;
+use ImSuperlative\PhpstanFilament\Resolvers\AttributeAnnotationParser;
+use ImSuperlative\PhpstanFilament\Resolvers\PhpDocAnnotationParser;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Rules\ClosureInjection;
+namespace ImSuperlative\PhpstanFilament\Rules\ClosureInjection;
 
 use PHPStan\Type\Type;
 

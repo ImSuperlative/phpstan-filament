@@ -2,19 +2,19 @@
 
 // tests/Unit/ComponentContextResolverTest.php
 
-use ImSuperlative\FilamentPhpstan\Data\FilamentContext;
-use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\AnnotationReader;
-use ImSuperlative\FilamentPhpstan\Resolvers\AttributeAnnotationParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\PhpDocAnnotationParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\ResourceModelResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\VirtualAnnotationProvider;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
-use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
-use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestEditPage;
-use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestModel;
-use ImSuperlative\FilamentPhpstan\Tests\Fixtures\Stubs\TestResource;
+use ImSuperlative\PhpstanFilament\Data\FilamentContext;
+use ImSuperlative\PhpstanFilament\Parser\TypeStringParser;
+use ImSuperlative\PhpstanFilament\Resolvers\AnnotationReader;
+use ImSuperlative\PhpstanFilament\Resolvers\AttributeAnnotationParser;
+use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\PhpDocAnnotationParser;
+use ImSuperlative\PhpstanFilament\Resolvers\ResourceModelResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\VirtualAnnotationProvider;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Tests\Fixtures\Stubs\TestEditPage;
+use ImSuperlative\PhpstanFilament\Tests\Fixtures\Stubs\TestModel;
+use ImSuperlative\PhpstanFilament\Tests\Fixtures\Stubs\TestResource;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 

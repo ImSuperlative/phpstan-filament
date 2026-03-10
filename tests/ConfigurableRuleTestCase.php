@@ -1,6 +1,6 @@
 <?php
 
-namespace ImSuperlative\FilamentPhpstan\Tests;
+namespace ImSuperlative\PhpstanFilament\Tests;
 
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;

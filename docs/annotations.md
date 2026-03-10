@@ -31,7 +31,7 @@ class PostFormSchema
 Attribute:
 
 ```php
-use ImSuperlative\FilamentPhpstan\Attributes\FilamentModel;
+use ImSuperlative\PhpstanFilament\Attributes\FilamentModel;
 
 #[FilamentModel(Post::class)]
 class PostFormSchema
@@ -108,7 +108,7 @@ class PostFormSchema
 Attribute:
 
 ```php
-use ImSuperlative\FilamentPhpstan\Attributes\FilamentPage;
+use ImSuperlative\PhpstanFilament\Attributes\FilamentPage;
 
 #[FilamentPage(EditPost::class)]
 class PostFormSchema
@@ -183,7 +183,7 @@ class PostFormSchema
 Attribute:
 
 ```php
-use ImSuperlative\FilamentPhpstan\Attributes\FilamentState;
+use ImSuperlative\PhpstanFilament\Attributes\FilamentState;
 
 #[FilamentState(CarbonInterface::class, field: 'updated_at')]
 #[FilamentState(CarbonInterface::class, field: 'created_at')]
@@ -248,8 +248,8 @@ class ListComments extends ViewRecord implements HasTable
 Attribute:
 
 ```php
-use ImSuperlative\FilamentPhpstan\Attributes\FilamentField;
-use ImSuperlative\FilamentPhpstan\Attributes\FilamentModel;
+use ImSuperlative\PhpstanFilament\Attributes\FilamentField;
+use ImSuperlative\PhpstanFilament\Attributes\FilamentModel;
 
 #[FilamentModel(Comment::class)]
 #[FilamentField(Post::class, field: 'commentable')]

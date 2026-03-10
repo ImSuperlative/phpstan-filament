@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension;
+namespace ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension;
 
-use ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver;
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\InjectionMapFactory;
-use ImSuperlative\FilamentPhpstan\Rules\ClosureInjection\TypedInjectionMap;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\InjectionMapFactory;
+use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\TypedInjectionMap;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ArrowFunction;
 use PhpParser\Node\Expr\Closure;

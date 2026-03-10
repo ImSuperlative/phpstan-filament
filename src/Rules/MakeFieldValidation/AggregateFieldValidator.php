@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Rules\MakeFieldValidation;
+namespace ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation;
 
-use ImSuperlative\FilamentPhpstan\FieldValidationLevel;
-use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\FieldValidationLevel;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\RuleError;
 use PHPStan\Rules\RuleErrorBuilder;
@@ -20,7 +20,7 @@ use PHPStan\ShouldNotHappenException;
  */
 class AggregateFieldValidator
 {
-    protected const string IDENTIFIER = 'filamentPhpstan.columnName.aggregateRelation';
+    protected const string IDENTIFIER = 'PhpstanFilament.columnName.aggregateRelation';
 
     protected const array AGGREGATE_FUNCTIONS = ['avg', 'sum', 'min', 'max', 'count', 'exists'];
 

@@ -1,19 +1,19 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\FieldValidationLevel;
-use ImSuperlative\FilamentPhpstan\Parser\TypeStringParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\AnnotationReader;
-use ImSuperlative\FilamentPhpstan\Resolvers\AttributeAnnotationParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\FieldPathResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\PhpDocAnnotationParser;
-use ImSuperlative\FilamentPhpstan\Resolvers\ResourceModelResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\VirtualAnnotationProvider;
-use ImSuperlative\FilamentPhpstan\Rules\MakeFieldValidation\AggregateFieldValidator;
-use ImSuperlative\FilamentPhpstan\Rules\MakeFieldValidation\MakeFieldValidationRule;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
-use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
-use ImSuperlative\FilamentPhpstan\Tests\ConfigurableRuleTestCase;
+use ImSuperlative\PhpstanFilament\FieldValidationLevel;
+use ImSuperlative\PhpstanFilament\Parser\TypeStringParser;
+use ImSuperlative\PhpstanFilament\Resolvers\AnnotationReader;
+use ImSuperlative\PhpstanFilament\Resolvers\AttributeAnnotationParser;
+use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\FieldPathResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\PhpDocAnnotationParser;
+use ImSuperlative\PhpstanFilament\Resolvers\ResourceModelResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\VirtualAnnotationProvider;
+use ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation\AggregateFieldValidator;
+use ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation\MakeFieldValidationRule;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Tests\ConfigurableRuleTestCase;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 

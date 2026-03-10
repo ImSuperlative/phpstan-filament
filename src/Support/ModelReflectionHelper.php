@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Support;
+namespace ImSuperlative\PhpstanFilament\Support;
 
 use PHPStan\Analyser\OutOfClassScope;
 use PHPStan\Analyser\Scope;

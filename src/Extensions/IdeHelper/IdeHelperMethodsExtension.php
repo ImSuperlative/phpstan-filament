@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Extensions\IdeHelper;
+namespace ImSuperlative\PhpstanFilament\Extensions\IdeHelper;
 
-use ImSuperlative\FilamentPhpstan\Data\IdeHelperParameterData;
-use ImSuperlative\FilamentPhpstan\Extensions\ClosureTypeExtension\SimpleParameterReflection;
-use ImSuperlative\FilamentPhpstan\Support\IdeHelperRegistry;
+use ImSuperlative\PhpstanFilament\Data\IdeHelperParameterData;
+use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\SimpleParameterReflection;
+use ImSuperlative\PhpstanFilament\Support\IdeHelperRegistry;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\Reflection\MethodsClassReflectionExtension;

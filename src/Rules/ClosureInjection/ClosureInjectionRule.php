@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Rules\ClosureInjection;
+namespace ImSuperlative\PhpstanFilament\Rules\ClosureInjection;
 
-use ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\StateTypeResolver;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\StateTypeResolver;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\ArrowFunction;
@@ -50,11 +50,11 @@ use PHPStan\Type\VoidType;
  */
 final class ClosureInjectionRule implements Rule
 {
-    public const string IDENTIFIER_NAME = 'filamentPhpstan.closureInjection.name';
+    public const string IDENTIFIER_NAME = 'PhpstanFilament.closureInjection.name';
 
-    public const string IDENTIFIER_TYPE = 'filamentPhpstan.closureInjection.type';
+    public const string IDENTIFIER_TYPE = 'PhpstanFilament.closureInjection.type';
 
-    public const string IDENTIFIER_RESERVED = 'filamentPhpstan.closureInjection.reserved';
+    public const string IDENTIFIER_RESERVED = 'PhpstanFilament.closureInjection.reserved';
 
     public function __construct(
         protected bool $closureInjection,

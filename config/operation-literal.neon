@@ -1,2 +1,2 @@
 # Feature #5: $operation literal union type
-# Enabled by: filamentPhpstan.typeOperationLiterals (default: true)
+# Enabled by: PhpstanFilament.typeOperationLiterals (default: true)

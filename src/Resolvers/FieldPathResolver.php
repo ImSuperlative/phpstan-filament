@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Resolvers;
+namespace ImSuperlative\PhpstanFilament\Resolvers;
 
-use ImSuperlative\FilamentPhpstan\Data\FieldPathResult;
-use ImSuperlative\FilamentPhpstan\Data\ResolvedSegment;
-use ImSuperlative\FilamentPhpstan\Data\SegmentTag;
-use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Data\FieldPathResult;
+use ImSuperlative\PhpstanFilament\Data\ResolvedSegment;
+use ImSuperlative\PhpstanFilament\Data\SegmentTag;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\Type;

@@ -2,7 +2,7 @@
 
 // tests/Unit/FilamentClassHelperTest.php
 
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 

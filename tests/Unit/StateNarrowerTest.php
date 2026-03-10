@@ -1,8 +1,8 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Data\ChainAnalysis;
-use ImSuperlative\FilamentPhpstan\Resolvers\FormComponentTypeNarrower;
-use ImSuperlative\FilamentPhpstan\Resolvers\FormOptionsNarrower;
+use ImSuperlative\PhpstanFilament\Data\ChainAnalysis;
+use ImSuperlative\PhpstanFilament\Resolvers\FormComponentTypeNarrower;
+use ImSuperlative\PhpstanFilament\Resolvers\FormOptionsNarrower;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\PHPStanTestCase;
 use PHPStan\Type\ArrayType;

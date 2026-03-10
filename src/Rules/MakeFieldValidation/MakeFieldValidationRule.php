@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace ImSuperlative\FilamentPhpstan\Rules\MakeFieldValidation;
+namespace ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation;
 
-use ImSuperlative\FilamentPhpstan\Data\SegmentTag;
-use ImSuperlative\FilamentPhpstan\FieldValidationLevel;
-use ImSuperlative\FilamentPhpstan\Resolvers\ComponentContextResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\FieldPathResolver;
-use ImSuperlative\FilamentPhpstan\Resolvers\PhpDocAnnotationParser;
-use ImSuperlative\FilamentPhpstan\Support\AstHelper;
-use ImSuperlative\FilamentPhpstan\Support\FilamentClassHelper;
-use ImSuperlative\FilamentPhpstan\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Data\SegmentTag;
+use ImSuperlative\PhpstanFilament\FieldValidationLevel;
+use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\FieldPathResolver;
+use ImSuperlative\PhpstanFilament\Resolvers\PhpDocAnnotationParser;
+use ImSuperlative\PhpstanFilament\Support\AstHelper;
+use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
 use PhpParser\Node;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
@@ -27,7 +27,7 @@ use PHPStan\Rules\RuleErrorBuilder;
  */
 class MakeFieldValidationRule implements Rule
 {
-    protected const string IDENTIFIER = 'filamentPhpstan.columnName';
+    protected const string IDENTIFIER = 'PhpstanFilament.columnName';
 
     public function __construct(
         protected FieldValidationLevel $level,

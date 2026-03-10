@@ -1,2 +1,2 @@
 # Feature #2: $record in closures type inference
-# Enabled by: filamentPhpstan.typeRecordClosures (default: true)
+# Enabled by: PhpstanFilament.typeRecordClosures (default: true)

@@ -7,5 +7,8 @@ composer.lock
 docs/libs
 docs/project-rules.md
 
+tests/cache/*
+!tests/cache/.gitignore
+
 todo.md
 project_todo.md

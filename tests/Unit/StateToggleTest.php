@@ -2,7 +2,7 @@
 
 // tests/Unit/StateToggleTest.php
 
-use ImSuperlative\FilamentPhpstan\Tests\TypeInferenceTestCase;
+use ImSuperlative\PhpstanFilament\Tests\TypeInferenceTestCase;
 
 // This test uses a config with stateClosure: false
 TypeInferenceTestCase::setConfigFiles([

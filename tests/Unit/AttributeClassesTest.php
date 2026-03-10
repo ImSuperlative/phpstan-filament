@@ -1,9 +1,9 @@
 <?php
 
-use ImSuperlative\FilamentPhpstan\Attributes\FilamentField;
-use ImSuperlative\FilamentPhpstan\Attributes\FilamentModel;
-use ImSuperlative\FilamentPhpstan\Attributes\FilamentPage;
-use ImSuperlative\FilamentPhpstan\Attributes\FilamentState;
+use ImSuperlative\PhpstanFilament\Attributes\FilamentField;
+use ImSuperlative\PhpstanFilament\Attributes\FilamentModel;
+use ImSuperlative\PhpstanFilament\Attributes\FilamentPage;
+use ImSuperlative\PhpstanFilament\Attributes\FilamentState;
 
 it('FilamentModel stores a single class type', function () {
     $attr = new FilamentModel('App\Models\Post');
