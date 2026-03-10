@@ -8,7 +8,7 @@ parametersSchema:
         typeActionRecords: bool()
         typeMacroMethods: bool()
         typeIdeHelper: bool()
-        filamentPath: string()
+        filamentPath: arrayOf(string())
         ideHelperPath: string()
         checkClosureInjection: bool()
         checkReservedClosureInjection: bool()
@@ -32,7 +32,7 @@ parameters:
         typeActionRecords: true
         typeMacroMethods: true
         typeIdeHelper: true
-        filamentPath: ''
+        filamentPath: []
         ideHelperPath: ''
         checkClosureInjection: true
         checkReservedClosureInjection: false

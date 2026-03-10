@@ -34,8 +34,9 @@
         }
     },
     "scripts": {
-        "phpstan": "vendor/bin/phpstan --configuration=phpstan.neon.dist",
-        "phpstan:clear": "vendor/bin/phpstan clear-result-cache"
+        "phpstan": "vendor/bin/phpstan --configuration=phpstan.neon",
+        "phpstan:clear": "vendor/bin/phpstan clear-result-cache",
+        "phpstan:fresh": "vendor/bin/phpstan clear-result-cache && vendor/bin/phpstan --configuration=phpstan.neon"
     },
     "extra": {
         "phpstan": {

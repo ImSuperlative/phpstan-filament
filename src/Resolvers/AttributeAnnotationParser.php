@@ -54,7 +54,7 @@ final class AttributeAnnotationParser implements AnnotationParser
                     );
                 }
 
-                return (new FilamentTagAnnotation($typeNode))->toPageAnnotation();
+                return new FilamentTagAnnotation($typeNode)->toPageAnnotation();
             },
             $this->getAttributes($class, FilamentPage::class, $method),
         );

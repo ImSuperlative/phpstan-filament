@@ -46,7 +46,7 @@ function buildRule(FieldValidationLevel $level): MakeFieldValidationRule
             $modelReflectionHelper,
             new VirtualAnnotationProvider(
                 enabled: false,
-                filamentPath: '',
+                filamentPath: [],
                 currentWorkingDirectory: '',
                 analysedPaths: [],
                 analysedPathsFromConfig: [],

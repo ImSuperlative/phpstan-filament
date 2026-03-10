@@ -40,7 +40,7 @@ beforeEach(function () {
         new ModelReflectionHelper($reflectionProvider),
         new VirtualAnnotationProvider(
             enabled: false,
-            filamentPath: '',
+            filamentPath: [],
             currentWorkingDirectory: '',
             analysedPaths: [],
             analysedPathsFromConfig: [],

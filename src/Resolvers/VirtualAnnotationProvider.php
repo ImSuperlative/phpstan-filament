@@ -32,7 +32,8 @@ final class VirtualAnnotationProvider
      */
     public function __construct(
         protected readonly bool $enabled,
-        protected readonly string $filamentPath,
+        /** @var list<string> */
+        protected readonly array $filamentPath,
         protected readonly string $currentWorkingDirectory,
         protected readonly array $analysedPaths,
         protected readonly array $analysedPathsFromConfig,
@@ -363,8 +364,11 @@ final class VirtualAnnotationProvider
     /** @return list<string> */
     protected function resolveScanPaths(): array
     {
-        if ($this->filamentPath !== '') {
-            return [$this->currentWorkingDirectory.'/'.$this->filamentPath];
+        if ($this->filamentPath !== []) {
+            return array_map(
+                fn (string $path) => $this->currentWorkingDirectory.'/'.$path,
+                $this->filamentPath,
+            );
         }
 
         return array_values(array_unique(array_merge($this->analysedPaths, $this->analysedPathsFromConfig)));

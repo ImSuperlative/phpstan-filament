@@ -4,6 +4,8 @@
 composer.lock
 
 # draft documents
-docs/plans
 docs/libs
 docs/project-rules.md
+
+todo.md
+project_todo.md

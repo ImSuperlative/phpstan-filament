@@ -42,7 +42,8 @@ parameters:
         checkFieldPaths: 1
         checkRelationships: true
         checkRedundantEnum: true
-        enableSchemaCallSitePreScan: false
+        filamentPath: []
+        autoInferContext: false
         closureInjectionMethods: []
 ```
 
@@ -64,9 +65,13 @@ Resolves dynamically registered macros on Filament classes.
 
 Reads model properties and methods from `_ide_helper_models.php` files.
 
-### [PHPDoc annotations](docs/annotations.md)
+### [Auto-infer context](docs/features/auto-infer-context.md)
 
-`@filament-model`, `@filament-page`, `@filament-state`, and `@filament-field` annotations for explicit type overrides.
+Pre-scans `::configure()` call sites to automatically infer model and page context for shared schema classes.
+
+### [Annotations](docs/annotations.md)
+
+`@filament-model`, `@filament-page`, `@filament-state`, and `@filament-field` — available as PHPDoc tags and PHP 8 attributes for explicit type overrides.
 
 ## Rules
 

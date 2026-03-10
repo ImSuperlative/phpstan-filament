@@ -12,7 +12,7 @@ beforeEach(function () {
 
     $this->provider = new VirtualAnnotationProvider(
         enabled: true,
-        filamentPath: '',
+        filamentPath: [],
         currentWorkingDirectory: '',
         analysedPaths: [],
         analysedPathsFromConfig: [],

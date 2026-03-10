@@ -66,7 +66,7 @@ function makeTestDependencies(): array
         $modelReflectionHelper,
         new VirtualAnnotationProvider(
             enabled: false,
-            filamentPath: '',
+            filamentPath: [],
             currentWorkingDirectory: '',
             analysedPaths: [],
             analysedPathsFromConfig: [],
