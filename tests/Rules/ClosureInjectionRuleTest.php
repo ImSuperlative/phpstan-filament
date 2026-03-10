@@ -38,7 +38,6 @@ function makeTestDependencies(): array
 
     $modelReflectionHelper = new ModelReflectionHelper($reflectionProvider);
 
-    /** @var Parser $parser */
     $fieldPathResolver = new FieldPathResolver(
         $modelReflectionHelper,
         $reflectionProvider,
