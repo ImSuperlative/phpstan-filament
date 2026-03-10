@@ -9,6 +9,7 @@ use ImSuperlative\PhpstanFilament\Support\AstHelper;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Scalar\Int_;
 use PhpParser\Node\Scalar\String_;
@@ -23,8 +24,14 @@ final class FormComponentChainResolver
         $literalOptionKeys = null;
         $isMultiple = $isInherentlyMultiple || $this->isInherentlyMultiple($componentClass);
 
-        $walkResult = AstHelper::walkMethodChain($expr, function (string $methodName, MethodCall $call) use ($scope, &$enumClass, &$literalOptionKeys, &$isMultiple) {
+        $isRequired = false;
+
+        $walkResult = AstHelper::walkMethodChain($expr, function (string $methodName, MethodCall $call) use ($scope, &$enumClass, &$literalOptionKeys, &$isMultiple, &$isRequired) {
             $isMultiple = $isMultiple || $methodName === 'multiple';
+
+            if ($methodName === 'required') {
+                $isRequired = $this->isRequiredCall($call);
+            }
 
             if ($methodName === 'enum' || $methodName === 'options') {
                 $arg = AstHelper::firstArgValue($call);
@@ -42,8 +49,33 @@ final class FormComponentChainResolver
             enumClass: $enumClass,
             literalOptionKeys: $literalOptionKeys,
             isMultiple: $isMultiple,
+            isRequired: $isRequired,
             fieldName: $walkResult->fieldName,
         );
+    }
+
+    /**
+     * Determine if a ->required() call is statically known to be required.
+     *
+     * - ->required()       → true (no args, default is true)
+     * - ->required(true)   → true
+     * - ->required(false)  → false
+     * - ->required($var)   → false (unknown, safe default)
+     * - ->required(fn())   → false (unknown, safe default)
+     */
+    protected function isRequiredCall(MethodCall $call): bool
+    {
+        $arg = AstHelper::firstArgValue($call);
+
+        if ($arg === null) {
+            return true;
+        }
+
+        if ($arg instanceof ConstFetch) {
+            return strtolower($arg->name->toString()) === 'true';
+        }
+
+        return false;
     }
 
     protected function extractEnumClass(Expr $arg, Scope $scope): ?string

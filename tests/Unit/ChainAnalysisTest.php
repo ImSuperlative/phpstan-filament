@@ -11,6 +11,7 @@ it('stores all chain analysis fields', function () {
         enumClass: null,
         literalOptionKeys: null,
         isMultiple: false,
+        isRequired: true,
         fieldName: 'price',
     );
 
@@ -19,6 +20,7 @@ it('stores all chain analysis fields', function () {
         ->and($analysis->enumClass)->toBeNull()
         ->and($analysis->literalOptionKeys)->toBeNull()
         ->and($analysis->isMultiple)->toBeFalse()
+        ->and($analysis->isRequired)->toBeTrue()
         ->and($analysis->fieldName)->toBe('price');
 });
 
@@ -29,6 +31,7 @@ it('stores enum class and isMultiple for enum selects', function () {
         enumClass: 'Fixtures\App\Enums\PostStatus',
         literalOptionKeys: null,
         isMultiple: true,
+        isRequired: false,
         fieldName: 'status',
     );
 
@@ -43,6 +46,7 @@ it('stores literal option keys', function () {
         enumClass: null,
         literalOptionKeys: ['draft', 'published', 'archived'],
         isMultiple: false,
+        isRequired: false,
         fieldName: 'status',
     );
 
@@ -56,6 +60,7 @@ it('allows null componentClass for unresolvable chains', function () {
         enumClass: null,
         literalOptionKeys: null,
         isMultiple: false,
+        isRequired: false,
         fieldName: null,
     );
 

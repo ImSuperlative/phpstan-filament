@@ -129,31 +129,71 @@ it('narrows ToggleButtons with multiple()', function () {
 
 describe('options and enum narrowing', function () {
     it('narrows Select with enum class', function () {
-        $analysis = new ChainAnalysis('Filament\Forms\Components\Select', ['enum'], 'Fixtures\App\Enums\PostStatus', null, false, null);
+        $analysis = new ChainAnalysis(
+            componentClass: 'Filament\Forms\Components\Select',
+            methodCalls: ['enum'],
+            enumClass: 'Fixtures\App\Enums\PostStatus',
+            literalOptionKeys: null,
+            isMultiple: false,
+            isRequired: false,
+            fieldName: null,
+        );
         $result = $this->narrower->narrowWithOptions($analysis, stringIntNull());
         expect($result->describe(VerbosityLevel::precise()))->toBe('Fixtures\App\Enums\PostStatus|null');
     });
 
     it('narrows Select with enum class and multiple()', function () {
-        $analysis = new ChainAnalysis('Filament\Forms\Components\Select', ['enum', 'multiple'], 'Fixtures\App\Enums\PostStatus', null, true, null);
+        $analysis = new ChainAnalysis(
+            componentClass: 'Filament\Forms\Components\Select',
+            methodCalls: ['enum', 'multiple'],
+            enumClass: 'Fixtures\App\Enums\PostStatus',
+            literalOptionKeys: null,
+            isMultiple: true,
+            isRequired: false,
+            fieldName: null,
+        );
         $result = $this->narrower->narrowWithOptions($analysis, stringIntNull());
         expect($result->describe(VerbosityLevel::precise()))->toBe('array<int, Fixtures\App\Enums\PostStatus>');
     });
 
     it('narrows Select with literal options array', function () {
-        $analysis = new ChainAnalysis('Filament\Forms\Components\Select', ['options'], null, ['draft', 'published', 'archived'], false, null);
+        $analysis = new ChainAnalysis(
+            componentClass: 'Filament\Forms\Components\Select',
+            methodCalls: ['options'],
+            enumClass: null,
+            literalOptionKeys: ['draft', 'published', 'archived'],
+            isMultiple: false,
+            isRequired: false,
+            fieldName: null,
+        );
         $result = $this->narrower->narrowWithOptions($analysis, stringIntNull());
         expect($result->describe(VerbosityLevel::precise()))->toBe("'archived'|'draft'|'published'|null");
     });
 
     it('narrows CheckboxList with enum (always multi)', function () {
-        $analysis = new ChainAnalysis('Filament\Forms\Components\CheckboxList', ['enum'], 'Fixtures\App\Enums\PostStatus', null, true, null);
+        $analysis = new ChainAnalysis(
+            componentClass: 'Filament\Forms\Components\CheckboxList',
+            methodCalls: ['enum'],
+            enumClass: 'Fixtures\App\Enums\PostStatus',
+            literalOptionKeys: null,
+            isMultiple: true,
+            isRequired: false,
+            fieldName: null,
+        );
         $result = $this->narrower->narrowWithOptions($analysis, arrayStringInt());
         expect($result->describe(VerbosityLevel::precise()))->toBe('array<int, Fixtures\App\Enums\PostStatus>');
     });
 
     it('falls back to base narrowing when options not resolvable', function () {
-        $analysis = new ChainAnalysis('Filament\Forms\Components\Select', ['multiple'], null, null, true, null);
+        $analysis = new ChainAnalysis(
+            componentClass: 'Filament\Forms\Components\Select',
+            methodCalls: ['multiple'],
+            enumClass: null,
+            literalOptionKeys: null,
+            isMultiple: true,
+            isRequired: false,
+            fieldName: null,
+        );
         $result = $this->narrower->narrowWithOptions($analysis, stringIntNull());
         expect($result->describe(VerbosityLevel::precise()))->toBe('array<int, int|string>');
     });

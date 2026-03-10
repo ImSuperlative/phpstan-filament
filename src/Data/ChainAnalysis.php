@@ -16,6 +16,7 @@ final readonly class ChainAnalysis
         public ?string $enumClass,
         public ?array $literalOptionKeys,
         public bool $isMultiple,
+        public bool $isRequired,
         public ?string $fieldName,
     ) {}
 }

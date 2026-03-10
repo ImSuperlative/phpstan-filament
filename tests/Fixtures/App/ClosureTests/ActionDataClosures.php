@@ -210,4 +210,30 @@ class ActionDataClosures
                 assertType('array{title: string, options: array{slug: string|null, category: array<int, int|string>, meta: array{name: string|null}}, settings: array{is_published: bool, meta_description: string|null}}', $data);
             });
     }
+
+    public static function makeActionWithRequiredFalse(): Action
+    {
+        return Action::make('requiredFalse')
+            ->schema([
+                TextInput::make('title')
+                    ->required(false),
+                TextInput::make('slug'),
+            ])
+            ->action(function (array $data) {
+                assertType('array{title: string|null, slug: string|null}', $data);
+            });
+    }
+
+    public static function makeActionWithRequiredClosure(): Action
+    {
+        return Action::make('requiredClosure')
+            ->schema([
+                TextInput::make('title')
+                    ->required(fn (): bool => true),
+                TextInput::make('slug'),
+            ])
+            ->action(function (array $data) {
+                assertType('array{title: string|null, slug: string|null}', $data);
+            });
+    }
 }

@@ -150,7 +150,7 @@ final class ActionDataHandler implements ClosureParameterHandler
 
         $stateType = $this->typeNarrower->narrowWithOptions($analysis, $baseType);
 
-        if (in_array('required', $analysis->methodCalls, true)) {
+        if ($analysis->isRequired) {
             $stateType = TypeCombinator::removeNull($stateType);
         }
 
