@@ -8,7 +8,7 @@ use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
 use PHPStan\Reflection\ReflectionProvider;
 
-final class ResourceModelResolver
+class ResourceModelResolver
 {
     /** @var array<string, string|null> */
     protected array $cache = [];

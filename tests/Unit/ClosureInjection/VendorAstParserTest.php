@@ -1,17 +1,18 @@
 <?php
 
+/** @noinspection ClassConstantCanBeUsedInspection */
+
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\VendorAstParser;
-use PhpParser\ParserFactory;
+use ImSuperlative\PhpstanFilament\Tests\PhpstanTestCase;
 
-$parser = new VendorAstParser((new ParserFactory)->createForNewestSupportedVersion());
-
-beforeEach(function () use ($parser) {
-    $this->parser = $parser;
-});
+function getVendorAstParser(): VendorAstParser
+{
+    return PhpstanTestCase::getContainer()->getByType(VendorAstParser::class);
+}
 
 it('parses ByName match arms from Component', function () {
-    $filePath = realpath(__DIR__.'/../../../vendor/filament/schemas/src/Components/Component.php');
-    $result = $this->parser->parseByNameMethod($filePath);
+    $filePath = project_root('vendor/filament/schemas/src/Components/Component.php');
+    $result = getVendorAstParser()->parseByNameMethod($filePath);
 
     expect($result)
         ->toBeArray()
@@ -24,8 +25,8 @@ it('parses ByName match arms from Component', function () {
 });
 
 it('parses multi-key match arms from Action', function () {
-    $filePath = realpath(__DIR__.'/../../../vendor/filament/actions/src/Action.php');
-    $result = $this->parser->parseByNameMethod($filePath);
+    $filePath = project_root('vendor/filament/actions/src/Action.php');
+    $result = getVendorAstParser()->parseByNameMethod($filePath);
 
     expect($result)
         ->toHaveKey('selectedRecords')
@@ -34,8 +35,8 @@ it('parses multi-key match arms from Action', function () {
 });
 
 it('parses ByType match arms from Component', function () {
-    $filePath = realpath(__DIR__.'/../../../vendor/filament/schemas/src/Components/Component.php');
-    $result = $this->parser->parseByTypeMethod($filePath);
+    $filePath = project_root('vendor/filament/schemas/src/Components/Component.php');
+    $result = getVendorAstParser()->parseByTypeMethod($filePath);
 
     expect($result)
         ->toHaveKey('Filament\Schemas\Components\Utilities\Get')
@@ -43,8 +44,8 @@ it('parses ByType match arms from Component', function () {
 });
 
 it('parses ByType match arms from Action', function () {
-    $filePath = realpath(__DIR__.'/../../../vendor/filament/actions/src/Action.php');
-    $result = $this->parser->parseByTypeMethod($filePath);
+    $filePath = project_root('vendor/filament/actions/src/Action.php');
+    $result = getVendorAstParser()->parseByTypeMethod($filePath);
 
     expect($result)
         ->toHaveKey('Illuminate\Database\Eloquent\Builder')
@@ -52,16 +53,16 @@ it('parses ByType match arms from Action', function () {
 });
 
 it('parses evaluationIdentifier from Action', function () {
-    $filePath = realpath(__DIR__.'/../../../vendor/filament/actions/src/Action.php');
-    expect($this->parser->parseEvaluationIdentifier($filePath))->toBe('action');
+    $filePath = project_root('vendor/filament/actions/src/Action.php');
+    expect(getVendorAstParser()->parseEvaluationIdentifier($filePath))->toBe('action');
 });
 
 it('parses evaluationIdentifier from Column', function () {
-    $filePath = realpath(__DIR__.'/../../../vendor/filament/tables/src/Columns/Column.php');
-    expect($this->parser->parseEvaluationIdentifier($filePath))->toBe('column');
+    $filePath = project_root('vendor/filament/tables/src/Columns/Column.php');
+    expect(getVendorAstParser()->parseEvaluationIdentifier($filePath))->toBe('column');
 });
 
 it('returns null evaluationIdentifier when not set with default', function () {
-    $filePath = realpath(__DIR__.'/../../../vendor/filament/support/src/Concerns/EvaluatesClosures.php');
-    expect($this->parser->parseEvaluationIdentifier($filePath))->toBeNull();
+    $filePath = project_root('vendor/filament/support/src/Concerns/EvaluatesClosures.php');
+    expect(getVendorAstParser()->parseEvaluationIdentifier($filePath))->toBeNull();
 });

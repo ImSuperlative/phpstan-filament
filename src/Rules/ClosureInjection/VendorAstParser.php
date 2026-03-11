@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Rules\ClosureInjection;
 
+use ImSuperlative\PhpstanFilament\Support\FileParser;
 use ImSuperlative\PhpstanFilament\Support\NamespaceHelper;
 use PhpParser\Node;
 use PhpParser\Node\Expr\Match_;
@@ -15,12 +16,11 @@ use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\NodeFinder;
-use PhpParser\Parser;
 
 final class VendorAstParser
 {
     public function __construct(
-        protected readonly Parser $parser,
+        protected readonly FileParser $fileParser,
     ) {}
     /**
      * Parse resolveDefaultClosureDependencyForEvaluationByName.
@@ -108,14 +108,14 @@ final class VendorAstParser
     /**
      * Parse a file and return [stmts, NodeFinder].
      *
-     * @return array{array<Node>, NodeFinder}
+     * @return array{list<Node\Stmt>, NodeFinder}
      */
     protected function parse(string $filePath): array
     {
-        $code = file_get_contents($filePath);
-        $stmts = $code !== false ? ($this->parser->parse($code) ?? []) : [];
-
-        return [$stmts, new NodeFinder];
+        return [
+            $this->fileParser->parseFile($filePath) ?? [],
+            $this->fileParser->nodeFinder(),
+        ];
     }
 
     /**

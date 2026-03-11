@@ -8,3 +8,10 @@ pest()->extend(TypeInferenceTestCase::class)
 
 pest()->extend(ConfigurableRuleTestCase::class)
     ->in('Rules');
+
+pest()->extend(\ImSuperlative\PhpstanFilament\Tests\Traits\TracksMemory::class);
+
+function project_root(string $path): string
+{
+    return realpath(dirname(__DIR__).'/'.ltrim($path, '/')) ?: '';
+}

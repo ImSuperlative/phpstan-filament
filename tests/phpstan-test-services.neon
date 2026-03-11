@@ -1,0 +1,9 @@
+services:
+    relationshipRuleFactory:
+        implement: ImSuperlative\PhpstanFilament\Tests\Support\RelationshipValidationRuleFactory
+    aggregateFieldValidatorFactory:
+        implement: ImSuperlative\PhpstanFilament\Tests\Support\AggregateFieldValidatorFactory
+    makeFieldValidationRuleFactory:
+        implement: ImSuperlative\PhpstanFilament\Tests\Support\MakeFieldValidationRuleFactory
+    injectionMapFactoryFactory:
+        implement: ImSuperlative\PhpstanFilament\Tests\Support\InjectionMapFactoryFactory

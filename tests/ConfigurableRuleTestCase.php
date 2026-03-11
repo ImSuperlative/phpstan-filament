@@ -3,13 +3,9 @@
 namespace ImSuperlative\PhpstanFilament\Tests;
 
 use ImSuperlative\PhpstanFilament\FieldValidationLevel;
-use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
-use ImSuperlative\PhpstanFilament\Resolvers\FieldPathResolver;
-use ImSuperlative\PhpstanFilament\Resolvers\PhpDocAnnotationParser;
-use ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation\AggregateFieldValidator;
 use ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation\MakeFieldValidationRule;
-use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
-use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Tests\Support\AggregateFieldValidatorFactory;
+use ImSuperlative\PhpstanFilament\Tests\Support\MakeFieldValidationRuleFactory;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 
@@ -33,24 +29,22 @@ class ConfigurableRuleTestCase extends RuleTestCase
 
     public static function getAdditionalConfigFiles(): array
     {
-        return [dirname(__DIR__).'/extension.neon'];
+        return [
+            dirname(__DIR__).'/extension.neon',
+            __DIR__.'/phpstan-test-services.neon',
+        ];
     }
 
     public static function buildRule(FieldValidationLevel $level): MakeFieldValidationRule
     {
         $container = self::getContainer();
 
-        return new MakeFieldValidationRule(
-            level: $level,
-            modelReflectionHelper: $container->getByType(ModelReflectionHelper::class),
-            filamentClassHelper: $container->getByType(FilamentClassHelper::class),
-            componentContextResolver: $container->getByType(ComponentContextResolver::class),
-            phpDocParser: $container->getByType(PhpDocAnnotationParser::class),
-            fieldPathResolver: $container->getByType(FieldPathResolver::class),
-            aggregateFieldValidator: new AggregateFieldValidator(
-                $level,
-                $container->getByType(ModelReflectionHelper::class),
-            ),
-        );
+        $validatorFactory = $container
+            ->getByType(AggregateFieldValidatorFactory::class)
+            ->create($level);
+
+        return $container
+            ->getByType(MakeFieldValidationRuleFactory::class)
+            ->create($level, $validatorFactory);
     }
 }

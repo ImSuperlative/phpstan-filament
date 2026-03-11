@@ -1,58 +1,31 @@
 <?php
 
-use ImSuperlative\PhpstanFilament\Resolvers\ResourceModelResolver;
 use ImSuperlative\PhpstanFilament\Resolvers\VirtualAnnotationProvider;
-use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
-use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
-use PHPStan\Reflection\ReflectionProvider;
-use PHPStan\Testing\PHPStanTestCase;
+use ImSuperlative\PhpstanFilament\Tests\PhpstanTestCase;
 
-beforeEach(function () {
-    $reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
-
-    $this->provider = new VirtualAnnotationProvider(
-        enabled: true,
-        filamentPath: [],
-        currentWorkingDirectory: '',
-        analysedPaths: [],
-        analysedPathsFromConfig: [],
-        resourceModelResolver: new ResourceModelResolver(
-            $reflectionProvider,
-            new FilamentClassHelper($reflectionProvider),
-            new ModelReflectionHelper($reflectionProvider),
-        ),
-    );
-});
+function getProvider(): VirtualAnnotationProvider
+{
+    return PhpstanTestCase::getContainer()->getByType(VirtualAnnotationProvider::class);
+}
 
 it('flattens a transitive caller map', function () {
-    $callerMap = [
+    $result = getProvider()->flattenCallerMap([
         'SharedHelper' => ['TableConfig'],
         'TableConfig' => ['PostResource', 'CommentResource'],
         'PostResource' => ['SomePanel'],
-    ];
+    ]);
 
-    $reflection = new ReflectionMethod($this->provider, 'flattenCallerMap');
-
-    $result = $reflection->invoke($this->provider, $callerMap);
-
-    // SharedHelper should now include transitive callers
-    expect($result['SharedHelper'])->toContain('TableConfig', 'PostResource', 'CommentResource', 'SomePanel');
-    // TableConfig should include its transitive callers
-    expect($result['TableConfig'])->toContain('PostResource', 'CommentResource', 'SomePanel');
-    // Leaf entries stay unchanged
-    expect($result['PostResource'])->toBe(['SomePanel']);
+    expect($result['SharedHelper'])->toContain('TableConfig', 'PostResource', 'CommentResource', 'SomePanel')
+        ->and($result['TableConfig'])->toContain('PostResource', 'CommentResource', 'SomePanel')
+        ->and($result['PostResource'])->toBe(['SomePanel']);
 });
 
 it('handles circular references without infinite loop', function () {
-    $callerMap = [
+    $result = getProvider()->flattenCallerMap([
         'A' => ['B'],
-        'B' => ['A'], // circular
-    ];
+        'B' => ['A'],
+    ]);
 
-    $reflection = new ReflectionMethod($this->provider, 'flattenCallerMap');
-
-    $result = $reflection->invoke($this->provider, $callerMap);
-
-    expect($result['A'])->toContain('B');
-    expect($result['B'])->toContain('A');
+    expect($result['A'])->toContain('B')
+        ->and($result['B'])->toContain('A');
 });

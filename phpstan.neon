@@ -7,3 +7,7 @@ parameters:
         - src
 
     stubFiles!: []
+
+    ignoreErrors:
+        - '#Function project_root not found\.#'
+        - '#Call to an undefined method PHPUnit\\Framework\\TestCase::analyse\(\)\.#'

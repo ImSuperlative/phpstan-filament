@@ -15,6 +15,7 @@ parametersSchema:
         checkFieldPaths: int()
         checkRelationships: bool()
         checkRedundantEnum: bool()
+        checkMissingContext: bool()
         autoInferContext: bool()
         # Extend
         closureInjectionMethods: arrayOf(arrayOf(string()))
@@ -39,6 +40,7 @@ parameters:
         checkFieldPaths: 1
         checkRelationships: true
         checkRedundantEnum: true
+        checkMissingContext: true
         autoInferContext: false
         # Extend
         closureInjectionMethods: []
@@ -56,9 +58,15 @@ services:
         class: ImSuperlative\PhpstanFilament\Resolvers\FormComponentStateMap
 
     -
-        class: ImSuperlative\PhpstanFilament\Rules\ClosureInjection\VendorAstParser
+        class: PhpParser\NodeFinder
+
+    -
+        class: ImSuperlative\PhpstanFilament\Support\FileParser
         arguments:
             parser: @currentPhpVersionPhpParser
+
+    -
+        class: ImSuperlative\PhpstanFilament\Rules\ClosureInjection\VendorAstParser
 
     -
         class: ImSuperlative\PhpstanFilament\Rules\ClosureInjection\DiscoveredClassCache
@@ -103,6 +111,7 @@ services:
         class: ImSuperlative\PhpstanFilament\Resolvers\VirtualAnnotationProvider
         arguments:
             enabled: %PhpstanFilament.autoInferContext%
+            warnOnVirtual: %PhpstanFilament.checkMissingContext%
             filamentPath: %PhpstanFilament.filamentPath%
             currentWorkingDirectory: %currentWorkingDirectory%
             analysedPaths: %analysedPaths%

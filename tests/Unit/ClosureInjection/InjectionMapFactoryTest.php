@@ -1,32 +1,23 @@
 <?php
 
-use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\InjectionMapFactory;
+/** @noinspection ClassConstantCanBeUsedInspection, StaticClosureCanBeUsedInspection */
+
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\InjectionParameter;
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\TypedInjectionMap;
-use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\DiscoveredClassCache;
-use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\VendorAstParser;
-use PHPStan\Reflection\ReflectionProvider;
-use PHPStan\Testing\PHPStanTestCase;
+use ImSuperlative\PhpstanFilament\Tests\PhpstanTestCase;
+use ImSuperlative\PhpstanFilament\Tests\Support\InjectionMapFactoryFactory;
 use PHPStan\Type\ObjectType;
+use PHPStan\Type\VerbosityLevel;
 
-function getSharedMap(): TypedInjectionMap
+function getTypedInjectionMap(): TypedInjectionMap
 {
-    static $map = null;
-
-    if ($map === null) {
-        $reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
-        $vendorAstParser = new VendorAstParser((new PhpParser\ParserFactory)->createForNewestSupportedVersion());
-        $factory = new InjectionMapFactory($reflectionProvider, $vendorAstParser, new DiscoveredClassCache);
-        $map = $factory->create();
-    }
-
-    return $map;
+    return PhpstanTestCase::getContainer()->getByType(TypedInjectionMap::class);
 }
 
 /** Extract just the parameter names from the map (avoids OOM from serializing Type objects). */
 function getParamNames(string $className): array
 {
-    $params = getSharedMap()->resolveForClass($className);
+    $params = getTypedInjectionMap()->resolveForClass($className);
 
     return $params !== null
         ? array_map(fn (InjectionParameter $p) => $p->name, $params)
@@ -46,16 +37,16 @@ it('creates a typed injection map with Action entries', function () {
 });
 
 it('resolves types for parameters', function () {
-    $record = getSharedMap()->findParameter('Filament\Schemas\Components\Component', 'record');
+    $record = getTypedInjectionMap()->findParameter('Filament\Schemas\Components\Component', 'record');
 
     // Avoid passing InjectionParameter through expect() — PHPStan Types are huge objects
     $this->assertNotNull($record);
-    $typeDescription = $record->type->describe(\PHPStan\Type\VerbosityLevel::typeOnly());
+    $typeDescription = $record->type->describe(VerbosityLevel::typeOnly());
     expect($typeDescription)->toContain('Model');
 });
 
 it('includes evaluationIdentifier as self-type', function () {
-    $action = getSharedMap()->findParameter('Filament\Actions\Action', 'action');
+    $action = getTypedInjectionMap()->findParameter('Filament\Actions\Action', 'action');
 
     $this->assertNotNull($action);
     $this->assertSame('action', $action->name);
@@ -80,7 +71,7 @@ it('resolves subclasses via parent walk', function () {
 });
 
 it('includes type map entries for Get and Set', function () {
-    $result = getSharedMap()->isTypeAllowed(
+    $result = getTypedInjectionMap()->isTypeAllowed(
         'Filament\Schemas\Components\Component',
         new ObjectType('Filament\Schemas\Components\Utilities\Get'),
     );
@@ -89,17 +80,15 @@ it('includes type map entries for Get and Set', function () {
 });
 
 it('preserves method additions', function () {
-    expect(getSharedMap()->getMethodAdditions('afterStateUpdated'))
+    expect(getTypedInjectionMap()->getMethodAdditions('afterStateUpdated'))
         ->toContain('old', 'oldRaw');
 });
 
 it('merges user-provided closureInjectionMethods', function () {
-    $reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
-    $vendorAstParser = new VendorAstParser((new PhpParser\ParserFactory)->createForNewestSupportedVersion());
-    $factory = new InjectionMapFactory($reflectionProvider, $vendorAstParser, new DiscoveredClassCache, [
-        'customMethod' => ['customParam'],
-    ]);
-    $map = $factory->create();
+    $map = PhpstanTestCase::getContainer()
+        ->getByType(InjectionMapFactoryFactory::class)
+        ->create(['customMethod' => ['customParam']])
+        ->create();
 
     expect($map->getMethodAdditions('customMethod'))->toBe(['customParam']);
 });

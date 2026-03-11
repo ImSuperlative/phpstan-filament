@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension;
 
 use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
-use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\InjectionMapFactory;
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\TypedInjectionMap;
 use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use PhpParser\Node\Expr;
@@ -24,15 +23,13 @@ use PHPStan\Type\Type;
 
 class FilamentClosureTypeExtension implements MethodParameterClosureTypeExtension
 {
-    protected ?TypedInjectionMap $injectionMap = null;
-
     /**
      * @param  list<ClosureParameterHandler>  $handlers
      */
     public function __construct(
         protected readonly FilamentClassHelper $filamentClassHelper,
         protected readonly ComponentContextResolver $componentContextResolver,
-        protected readonly InjectionMapFactory $injectionMapFactory,
+        protected readonly TypedInjectionMap $injectionMap,
         protected readonly array $handlers,
     ) {}
 
@@ -186,11 +183,6 @@ class FilamentClosureTypeExtension implements MethodParameterClosureTypeExtensio
             return null;
         }
 
-        return $this->getInjectionMap()->findParameter($context->declaringClass, $paramName)?->type;
-    }
-
-    protected function getInjectionMap(): TypedInjectionMap
-    {
-        return $this->injectionMap ??= $this->injectionMapFactory->create();
+        return $this->injectionMap->findParameter($context->declaringClass, $paramName)?->type;
     }
 }

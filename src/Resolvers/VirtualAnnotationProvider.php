@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ImSuperlative\PhpstanFilament\Resolvers;
 
 use ImSuperlative\PhpstanFilament\Data\FilamentPageAnnotation;
+use ImSuperlative\PhpstanFilament\Support\FileParser;
 use ImSuperlative\PhpstanFilament\Support\NamespaceHelper;
 use PhpParser\Node;
 use PhpParser\Node\Expr\StaticCall;
@@ -12,7 +13,6 @@ use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\NodeFinder;
-use PhpParser\ParserFactory;
 use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use Symfony\Component\Finder\Finder;
@@ -32,12 +32,14 @@ final class VirtualAnnotationProvider
      */
     public function __construct(
         protected readonly bool $enabled,
+        protected readonly bool $warnOnVirtual,
         /** @var list<string> */
         protected readonly array $filamentPath,
         protected readonly string $currentWorkingDirectory,
         protected readonly array $analysedPaths,
         protected readonly array $analysedPathsFromConfig,
         protected readonly ResourceModelResolver $resourceModelResolver,
+        protected readonly FileParser $fileParser,
     ) {}
 
     /**
@@ -47,7 +49,7 @@ final class VirtualAnnotationProvider
      */
     public function getPageAnnotations(string $className): array
     {
-        if (! $this->enabled) {
+        if (! $this->enabled && ! $this->warnOnVirtual) {
             return [];
         }
 
@@ -73,7 +75,7 @@ final class VirtualAnnotationProvider
      * @param  array<string, list<string>>  $callerMap
      * @return array<string, list<string>>
      */
-    protected function flattenCallerMap(array $callerMap): array
+    public function flattenCallerMap(array $callerMap): array
     {
         $flattened = [];
 
@@ -118,8 +120,7 @@ final class VirtualAnnotationProvider
     protected function buildCallerMap(): array
     {
         $callers = [];
-        $parser = (new ParserFactory)->createForNewestSupportedVersion();
-        $finder = new NodeFinder;
+        $finder = $this->fileParser->nodeFinder();
 
         foreach ($this->discoverPhpFiles() as $filePath) {
             $code = file_get_contents($filePath);
@@ -135,10 +136,7 @@ final class VirtualAnnotationProvider
                 continue;
             }
 
-            $stmts = $parser->parse($code);
-            if ($stmts === null) {
-                continue;
-            }
+            $stmts = $this->fileParser->parse($code);
 
             $callers = $this->mergeCallerMaps(
                 $callers,
@@ -372,5 +370,54 @@ final class VirtualAnnotationProvider
         }
 
         return array_values(array_unique(array_merge($this->analysedPaths, $this->analysedPathsFromConfig)));
+    }
+
+    /**
+     * Dump the caller map as a nested tree for debugging.
+     *
+     * @return list<string>
+     */
+    public function dumpCallerTree(): array
+    {
+        $callerMap = $this->buildCallerMap();
+        $lines = [];
+
+        ksort($callerMap);
+
+        foreach ($callerMap as $target => $directCallers) {
+            $lines[] = $target;
+
+            sort($directCallers);
+
+            foreach ($directCallers as $caller) {
+                $this->dumpCallerBranch($caller, $callerMap, $lines, 1, [$target]);
+            }
+
+            $lines[] = '';
+        }
+
+        return $lines;
+    }
+
+    /**
+     * @param  array<string, list<string>>  $callerMap
+     * @param  list<string>  $lines
+     * @param  list<string>  $visited
+     */
+    protected function dumpCallerBranch(string $caller, array $callerMap, array &$lines, int $depth, array $visited): void
+    {
+        $indent = str_repeat('  ', $depth);
+        $lines[] = "{$indent}← $caller";
+
+        if (in_array($caller, $visited, true)) {
+            return;
+        }
+
+        $transitiveCallers = $callerMap[$caller] ?? [];
+        sort($transitiveCallers);
+
+        foreach ($transitiveCallers as $transitive) {
+            $this->dumpCallerBranch($transitive, $callerMap, $lines, $depth + 1, [...$visited, $caller]);
+        }
     }
 }

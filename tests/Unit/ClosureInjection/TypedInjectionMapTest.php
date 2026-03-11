@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection ClassConstantCanBeUsedInspection */
+
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\InjectionParameter;
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\TypedInjectionMap;
 use PHPStan\Reflection\ReflectionProvider;
