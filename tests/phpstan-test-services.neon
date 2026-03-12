@@ -16,3 +16,10 @@ services:
             currentWorkingDirectory: %currentWorkingDirectory%
             #analysedPaths: %analysedPaths%
             analysedPathsFromConfig: %analysedPathsFromConfig%
+    filamentProjectScannerFactory:
+        implement: ImSuperlative\PhpstanFilament\Tests\Support\FilamentProjectScannerFactory
+        arguments:
+            graphTransformers: []
+            enrichmentTransformers: []
+            currentWorkingDirectory: %currentWorkingDirectory%
+            analysedPathsFromConfig: %analysedPathsFromConfig%

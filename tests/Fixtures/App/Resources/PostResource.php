@@ -2,11 +2,15 @@
 
 namespace Fixtures\App\Resources;
 
+use Filament\Resources\RelationManagers\RelationGroup;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Fixtures\App\Models\Post;
 use Fixtures\App\Resources\PostResource\Pages;
+use Fixtures\App\Resources\PostResource\RelationManagers\CommentsRelationManager;
+use Fixtures\App\Resources\PostResource\RelationManagers\MediaRelationManager;
+use Fixtures\App\Resources\PostResource\RelationManagers\TagsRelationManager;
 use Fixtures\App\Resources\PostResource\Schemas\PostForm;
 use Fixtures\App\Resources\PostResource\Schemas\PostTable;
 
@@ -32,6 +36,18 @@ class PostResource extends Resource
             'create' => Pages\CreatePost::route('/create'),
             'edit' => Pages\EditPost::route('/{record}/edit'),
             'view' => Pages\ViewPost::route('/{record}'),
+        ];
+    }
+
+    /** @return list<mixed> */
+    public static function getRelations(): array
+    {
+        return [
+            CommentsRelationManager::class,
+            RelationGroup::make('Media', [
+                TagsRelationManager::class,
+                MediaRelationManager::class,
+            ]),
         ];
     }
 }
