@@ -1,0 +1,29 @@
+{
+    "$schema": "https://laravel-ide.com/schema/laravel-ide-v2.json",
+    "completions": [
+        {
+            "complete": "directoryFiles",
+            "options": {
+                "directory": "/tests/Fixtures"
+            },
+            "condition": [
+                {
+                    "functionNames": ["fixture_path"],
+                    "parameters": [1]
+                }
+            ]
+        },
+        {
+            "complete": "directoryFiles",
+            "options": {
+                "directory": "/tests"
+            },
+            "condition": [
+                {
+                    "functionNames": ["tests_path"],
+                    "parameters": [1]
+                }
+            ]
+        }
+    ]
+}

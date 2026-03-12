@@ -26,3 +26,24 @@ if (! function_exists('array_find_map')) {
         return null;
     }
 }
+
+if (! function_exists('project_root')) {
+    function project_root(string $path): string
+    {
+        return realpath(dirname(__DIR__, 1).'/'.ltrim($path, '/')) ?: '';
+    }
+}
+
+if (! function_exists('tests_path')) {
+    function tests_path(string $path): string
+    {
+        return project_root('tests/'.ltrim($path, '/'));
+    }
+}
+
+if (! function_exists('fixture_path')) {
+    function fixture_path(string $path): string
+    {
+        return project_root('tests/Fixtures/'.ltrim($path, '/'));
+    }
+}

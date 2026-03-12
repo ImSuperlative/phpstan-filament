@@ -7,13 +7,13 @@ Pre-scans your project for `::configure()` call sites to automatically infer mod
 | Option             | Default | Description                                          |
 |--------------------|---------|------------------------------------------------------|
 | `autoInferContext`  | `false` | Enable call-site pre-scanning                        |
-| `filamentPath`      | `[]`    | Paths to scan (defaults to PHPStan's analysed paths) |
+| `filamentPaths`      | `[]`    | Paths to scan (defaults to PHPStan's analysed paths) |
 
 ```neon
 parameters:
     PhpstanFilament:
         autoInferContext: true
-        filamentPath:
+        filamentPaths:
             - app/Filament
 ```
 

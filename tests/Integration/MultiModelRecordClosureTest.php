@@ -1,18 +1,18 @@
 <?php
 
+use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\ClosureHandlerContext;
 use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\Handlers\RecordClosureHandler;
 use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
-use PHPStan\Reflection\ReflectionProvider;
-use PHPStan\Testing\PHPStanTestCase;
-use PHPStan\Type\ObjectType;
-use PHPStan\Type\TypeCombinator;
-use PHPStan\Type\VerbosityLevel;
-use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\ClosureHandlerContext;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PHPStan\Analyser\ScopeContext;
 use PHPStan\Analyser\ScopeFactory;
+use PHPStan\Reflection\ReflectionProvider;
+use PHPStan\Testing\PHPStanTestCase;
+use PHPStan\Type\ObjectType;
+use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\VerbosityLevel;
 
 /**
  * Build a ClosureHandlerContext for unit testing handlers.

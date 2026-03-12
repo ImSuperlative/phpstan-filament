@@ -8,7 +8,7 @@ parametersSchema:
         typeActionRecords: bool()
         typeMacroMethods: bool()
         typeIdeHelper: bool()
-        filamentPath: arrayOf(string())
+        filamentPaths: arrayOf(string())
         ideHelperPath: string()
         checkClosureInjection: bool()
         checkReservedClosureInjection: bool()
@@ -23,7 +23,7 @@ parametersSchema:
 
 parameters:
     bootstrapFiles:
-        - src/Support/helpers.php
+        - src/helpers.php
     PhpstanFilament:
         typeOwnerRecord: true
         typeRecordClosures: true
@@ -33,7 +33,7 @@ parameters:
         typeActionRecords: true
         typeMacroMethods: true
         typeIdeHelper: true
-        filamentPath: []
+        filamentPaths: []
         ideHelperPath: ''
         checkClosureInjection: true
         checkReservedClosureInjection: false
@@ -46,6 +46,10 @@ parameters:
         closureInjectionMethods: []
 
 services:
+    filamentNodeFinder:
+        class: PhpParser\NodeFinder
+        autowired: false
+
     -
         class: ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper
         arguments:
@@ -58,12 +62,10 @@ services:
         class: ImSuperlative\PhpstanFilament\Resolvers\FormComponentStateMap
 
     -
-        class: PhpParser\NodeFinder
-
-    -
         class: ImSuperlative\PhpstanFilament\Support\FileParser
         arguments:
             parser: @currentPhpVersionPhpParser
+            nodeFinder: @filamentNodeFinder
 
     -
         class: ImSuperlative\PhpstanFilament\Rules\ClosureInjection\VendorAstParser
@@ -112,7 +114,7 @@ services:
         arguments:
             enabled: %PhpstanFilament.autoInferContext%
             warnOnVirtual: %PhpstanFilament.checkMissingContext%
-            filamentPath: %PhpstanFilament.filamentPath%
+            filamentPaths: %PhpstanFilament.filamentPaths%
             currentWorkingDirectory: %currentWorkingDirectory%
             analysedPaths: %analysedPaths%
             analysedPathsFromConfig: %analysedPathsFromConfig%
@@ -209,3 +211,4 @@ includes:
     - config/redundant-enum.neon
     - config/macro.neon
     - config/ide-helper.neon
+    - config/missing-context.neon

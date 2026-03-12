@@ -42,7 +42,7 @@ it('can register data manually and retrieve it', function () {
 });
 
 it('parses fixture files via custom path', function () {
-    $customPath = __DIR__.'/../Fixtures/App/Models/_ide_helper_models.php';
+    $customPath = fixture_path('App/Models/_ide_helper_models.php');
     $registry = new IdeHelperRegistry($this->modelParser, true, $customPath, __DIR__);
 
     $post = $registry->getModelData('Fixtures\App\Models\Post');
@@ -52,7 +52,7 @@ it('parses fixture files via custom path', function () {
 });
 
 it('returns null when disabled', function () {
-    $customPath = __DIR__.'/../Fixtures/App/Models/_ide_helper_models.php';
+    $customPath = fixture_path('App/Models/_ide_helper_models.php');
     $registry = new IdeHelperRegistry($this->modelParser, false, $customPath, __DIR__);
 
     expect($registry->getModelData('Fixtures\App\Models\Post'))->toBeNull();

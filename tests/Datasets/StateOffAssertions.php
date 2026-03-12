@@ -9,6 +9,6 @@ dataset('state-toggle-types', function () {
     ]);
 
     return TypeInferenceTestCase::assertTypesForFile(
-        __DIR__.'/../Fixtures/App/ClosureTests/StateToggleAssertions.php',
+        fixture_path('App/ClosureTests/StateToggleAssertions.php'),
     );
 });

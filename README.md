@@ -42,7 +42,7 @@ parameters:
         checkFieldPaths: 1
         checkRelationships: true
         checkRedundantEnum: true
-        filamentPath: []
+        filamentPaths: []
         autoInferContext: false
         closureInjectionMethods: []
 ```

@@ -3,21 +3,21 @@
 use ImSuperlative\PhpstanFilament\Tests\BatchTypeInferenceTestCase;
 
 $results = BatchTypeInferenceTestCase::batchGatherAssertTypes([
-    __DIR__.'/../Fixtures/SmokeTest.php',
-    __DIR__.'/../Fixtures/OperationLiteralAssertions.php',
-    __DIR__.'/../Fixtures/App/ClosureTests/RecordClosureAssertions.php',
-    __DIR__.'/../Fixtures/App/ClosureTests/StateBaseTypeAssertions.php',
-    __DIR__.'/../Fixtures/App/ClosureTests/StateColumnAssertions.php',
-    __DIR__.'/../Fixtures/App/ClosureTests/StateNarrowingAssertions.php',
-    __DIR__.'/../Fixtures/App/ClosureTests/MapTypeAssertions.php',
-    __DIR__.'/../Fixtures/App/ClosureTests/OptionsEnumNarrowingAssertions.php',
-    __DIR__.'/../Fixtures/App/ClosureTests/FilamentPageAnnotationAssertions.php',
-    __DIR__.'/../Fixtures/App/ClosureTests/AttributeAnnotationAssertions.php',
-    __DIR__.'/../Fixtures/App/ClosureTests/ActionRecordsClosures.php',
-    __DIR__.'/../Fixtures/App/ClosureTests/ActionDataClosures.php',
-    __DIR__.'/../Fixtures/App/ClosureTests/TableQueryOverrideAssertions.php',
-    __DIR__.'/../Fixtures/App/OwnerRecordTests/OwnerRecordUsage.php',
-    __DIR__.'/../Fixtures/App/OwnerRecordTests/SharedSchemaOwnerRecord.php',
+    fixture_path('SmokeTest.php'),
+    fixture_path('OperationLiteralAssertions.php'),
+    fixture_path('App/ClosureTests/RecordClosureAssertions.php'),
+    fixture_path('App/ClosureTests/StateBaseTypeAssertions.php'),
+    fixture_path('App/ClosureTests/StateColumnAssertions.php'),
+    fixture_path('App/ClosureTests/StateNarrowingAssertions.php'),
+    fixture_path('App/ClosureTests/MapTypeAssertions.php'),
+    fixture_path('App/ClosureTests/OptionsEnumNarrowingAssertions.php'),
+    fixture_path('App/ClosureTests/FilamentPageAnnotationAssertions.php'),
+    fixture_path('App/ClosureTests/AttributeAnnotationAssertions.php'),
+    fixture_path('App/ClosureTests/ActionRecordsClosures.php'),
+    fixture_path('App/ClosureTests/ActionDataClosures.php'),
+    fixture_path('App/ClosureTests/TableQueryOverrideAssertions.php'),
+    fixture_path('App/OwnerRecordTests/OwnerRecordUsage.php'),
+    fixture_path('App/OwnerRecordTests/SharedSchemaOwnerRecord.php'),
 ]);
 
 dataset('smoke-test', $results['SmokeTest.php']);

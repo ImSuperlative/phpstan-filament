@@ -22,6 +22,7 @@ final class VendorAstParser
     public function __construct(
         protected readonly FileParser $fileParser,
     ) {}
+
     /**
      * Parse resolveDefaultClosureDependencyForEvaluationByName.
      *
@@ -108,7 +109,7 @@ final class VendorAstParser
     /**
      * Parse a file and return [stmts, NodeFinder].
      *
-     * @return array{list<Node\Stmt>, NodeFinder}
+     * @return array{array<Node\Stmt>, NodeFinder}
      */
     protected function parse(string $filePath): array
     {

@@ -21,13 +21,16 @@
     },
     "autoload": {
         "files": [
-            "src/Support/helpers.php"
+            "src/helpers.php"
         ],
         "psr-4": {
             "ImSuperlative\\PhpstanFilament\\": "src/"
         }
     },
     "autoload-dev": {
+        "files": [
+            "src/helpers.php"
+        ],
         "psr-4": {
             "ImSuperlative\\PhpstanFilament\\Tests\\": "tests/",
             "Fixtures\\App\\": "tests/Fixtures/App/"

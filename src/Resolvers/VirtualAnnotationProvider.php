@@ -1,45 +1,55 @@
 <?php
 
+/** @noinspection ClassConstantCanBeUsedInspection */
+
 declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Resolvers;
 
 use ImSuperlative\PhpstanFilament\Data\FilamentPageAnnotation;
+use ImSuperlative\PhpstanFilament\Data\FileMetadata;
+use ImSuperlative\PhpstanFilament\Resolvers\Concerns\CallerMapDebugging;
+use ImSuperlative\PhpstanFilament\Resolvers\Concerns\FilamentFileDiscovery;
 use ImSuperlative\PhpstanFilament\Support\FileParser;
 use ImSuperlative\PhpstanFilament\Support\NamespaceHelper;
-use PhpParser\Node;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\Trait_;
+use PhpParser\Node\Stmt\TraitUse;
 use PhpParser\NodeFinder;
 use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
-use Symfony\Component\Finder\Finder;
 
 final class VirtualAnnotationProvider
 {
-    protected const array FILAMENT_PREFIXES = [
-        'Filament\\',
+    use CallerMapDebugging;
+    use FilamentFileDiscovery;
+
+    protected const array ROOT_BASE_CLASSES = [
+        'Filament\\Resources\\Resource',
+        'Filament\\Resources\\RelationManagers\\RelationManager',
+        'Filament\\Resources\\Pages\\ManageRelatedRecords',
     ];
 
     /** @var array<string, list<FilamentPageAnnotation>>|null className => annotations */
-    protected ?array $annotations = null;
+    public ?array $annotations = null;
 
     /**
      * @param  list<string>  $analysedPaths
      * @param  list<string>  $analysedPathsFromConfig
+     * @param  list<string>  $filamentPaths
      */
     public function __construct(
-        protected readonly bool $enabled,
-        protected readonly bool $warnOnVirtual,
-        /** @var list<string> */
-        protected readonly array $filamentPath,
-        protected readonly string $currentWorkingDirectory,
-        protected readonly array $analysedPaths,
-        protected readonly array $analysedPathsFromConfig,
-        protected readonly ResourceModelResolver $resourceModelResolver,
-        protected readonly FileParser $fileParser,
+        protected ResourceModelResolver $resourceModelResolver,
+        protected FileParser $fileParser,
+        protected bool $enabled,
+        protected bool $warnOnVirtual,
+        protected array $filamentPaths,
+        protected string $currentWorkingDirectory,
+        protected array $analysedPaths,
+        protected array $analysedPathsFromConfig,
     ) {}
 
     /**
@@ -63,88 +73,14 @@ final class VirtualAnnotationProvider
      */
     protected function scan(): array
     {
-        $callerMap = $this->buildCallerMap();
-        $callerMap = $this->flattenCallerMap($callerMap);
+        $filePaths = $this->discoverFilamentFiles();
+        $index = $this->indexFileMetadata($filePaths);
+        $classToFile = $this->mapClassNamesToFiles($index);
+        $roots = $this->findResourceRoots($index);
+        $graph = $this->buildClassDependencyGraph($roots, $index, $classToFile);
+        $contextMap = $this->assignRootsToReachableClasses($roots, $index, $graph);
 
-        return $this->buildAnnotations($callerMap);
-    }
-
-    /**
-     * Transitively expand the caller map so that indirect callers become direct callers.
-     *
-     * @param  array<string, list<string>>  $callerMap
-     * @return array<string, list<string>>
-     */
-    public function flattenCallerMap(array $callerMap): array
-    {
-        $flattened = [];
-
-        foreach ($callerMap as $target => $callers) {
-            $flattened[$target] = $this->collectTransitiveCallers($target, $callerMap, []);
-        }
-
-        return $flattened;
-    }
-
-    /**
-     * @param  array<string, list<string>>  $callerMap
-     * @param  list<string>  $visited
-     * @return list<string>
-     */
-    protected function collectTransitiveCallers(string $target, array $callerMap, array $visited): array
-    {
-        $result = [];
-
-        foreach ($callerMap[$target] ?? [] as $caller) {
-            if (in_array($caller, $visited, true)) {
-                continue;
-            }
-
-            $result[] = $caller;
-
-            foreach ($this->collectTransitiveCallers($caller, $callerMap, [...$visited, $caller]) as $transitive) {
-                if (! in_array($transitive, $result, true)) {
-                    $result[] = $transitive;
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Build caller map: target class => list of caller classes.
-     *
-     * @return array<string, list<string>>
-     */
-    protected function buildCallerMap(): array
-    {
-        $callers = [];
-        $finder = $this->fileParser->nodeFinder();
-
-        foreach ($this->discoverPhpFiles() as $filePath) {
-            $code = file_get_contents($filePath);
-            if ($code === false) {
-                continue;
-            }
-
-            $hasConfigureCall = str_contains($code, '::configure(');
-            $hasConfigureMethodDefinition = str_contains($code, 'function configure(Schema')
-                || str_contains($code, 'function configure(Table');
-
-            if (! $hasConfigureCall && ! $hasConfigureMethodDefinition) {
-                continue;
-            }
-
-            $stmts = $this->fileParser->parse($code);
-
-            $callers = $this->mergeCallerMaps(
-                $callers,
-                $this->processStatements($stmts, $finder, $hasConfigureCall, $hasConfigureMethodDefinition),
-            );
-        }
-
-        return $callers;
+        return $this->buildPageAnnotations($contextMap);
     }
 
     /**
@@ -153,7 +89,7 @@ final class VirtualAnnotationProvider
      * @param  array<string, list<string>>  $callerMap
      * @return array<string, list<FilamentPageAnnotation>>
      */
-    protected function buildAnnotations(array $callerMap): array
+    protected function buildPageAnnotations(array $callerMap): array
     {
         $annotations = [];
 
@@ -174,250 +110,304 @@ final class VirtualAnnotationProvider
     }
 
     /**
-     * @param  array<Node>  $stmts
-     * @return array<string, list<string>>
+     * Gate: discover PHP files that import from Filament.
+     *
+     * @return list<string> file paths
      */
-    protected function processStatements(array $stmts, NodeFinder $finder, bool $hasConfigureCall, bool $hasConfigureMethodDefinition): array
+    protected function discoverFilamentFiles(): array
     {
-        $useMap = NamespaceHelper::buildQualifiedImportMapFromAst($stmts, $finder);
+        $filamentFiles = [];
+
+        foreach ($this->discoverPhpFiles() as $filePath) {
+            $code = file_get_contents($filePath);
+            if ($code === false) {
+                continue;
+            }
+
+            if (! str_contains($code, 'use Filament\\')) {
+                continue;
+            }
+
+            $filamentFiles[] = $filePath;
+        }
+
+        return $filamentFiles;
+    }
+
+    /**
+     * Parse gated files and extract metadata for root identification and walking.
+     *
+     * @param  list<string>  $filePaths
+     * @return array<string, FileMetadata>
+     */
+    protected function indexFileMetadata(array $filePaths): array
+    {
+        $index = [];
+        $finder = $this->fileParser->nodeFinder();
+
+        foreach ($filePaths as $filePath) {
+            $metadata = $this->parseFileMetadata($filePath, $finder);
+            if ($metadata !== null) {
+                $index[$filePath] = $metadata;
+            }
+        }
+
+        return $index;
+    }
+
+    protected function parseFileMetadata(string $filePath, NodeFinder $finder): ?FileMetadata
+    {
+        $code = file_get_contents($filePath);
+        if ($code === false) {
+            return null;
+        }
+
+        $stmts = $this->fileParser->parse($code);
         $namespace = NamespaceHelper::findNamespaceDeclaration($stmts, $finder);
+        $useMap = NamespaceHelper::buildQualifiedImportMapFromAst($stmts, $finder);
 
-        /** @var list<StaticCall> $calls */
-        $calls = $finder->findInstanceOf($stmts, StaticCall::class);
+        $class = $finder->findFirstInstanceOf($stmts, Class_::class);
+        $trait = $class === null
+            ? $finder->findFirstInstanceOf($stmts, Trait_::class)
+            : null;
 
-        $callers = $hasConfigureCall
-            ? $this->collectConfigureCallers($calls, $useMap, $namespace, $stmts, $finder)
-            : [];
-
-        if ($hasConfigureMethodDefinition) {
-            $callers = $this->mergeCallerMaps(
-                $callers,
-                $this->collectCustomComponentCallers($calls, $useMap, $namespace, $stmts, $finder),
-            );
+        $node = $class ?? $trait;
+        if ($node === null || $node->name === null) {
+            return null;
         }
 
-        return $callers;
-    }
+        $fullyQualifiedName = NamespaceHelper::isRelativeNamespace($namespace)
+            ? NamespaceHelper::prependNamespace($namespace, (string) $node->name)
+            : (string) $node->name;
 
-    /**
-     * @param  list<StaticCall>  $calls
-     * @param  array<string, string>  $useMap
-     * @param  array<Node>  $stmts
-     * @return array<string, list<string>>
-     */
-    protected function collectConfigureCallers(array $calls, array $useMap, ?string $namespace, array $stmts, NodeFinder $finder): array
-    {
-        $callers = [];
+        $extends = ($class?->extends !== null)
+            ? NamespaceHelper::toFullyQualified((string) $class->extends, $useMap, $namespace)
+            : null;
 
-        foreach ($calls as $call) {
-            if (! $this->isNamedStaticCall($call, 'configure')) {
-                continue;
-            }
-
-            $schemaClass = NamespaceHelper::toFullyQualified((string) $call->class, $useMap, $namespace);
-            $callerFqcn = $this->resolveEnclosingClass($call, $stmts, $finder, $namespace);
-
-            if ($callerFqcn !== null) {
-                $callers = $this->mergeCallerMaps($callers, [$schemaClass => [$callerFqcn]]);
+        $traits = [];
+        /** @var list<TraitUse> $traitUses */
+        $traitUses = $finder->findInstanceOf($node->stmts, TraitUse::class);
+        foreach ($traitUses as $traitUse) {
+            foreach ($traitUse->traits as $traitName) {
+                $traits[] = NamespaceHelper::toFullyQualified((string) $traitName, $useMap, $namespace);
             }
         }
 
-        return $callers;
+        return new FileMetadata(
+            fullyQualifiedName: $fullyQualifiedName,
+            extends: $extends,
+            traits: $traits,
+            useMap: $useMap,
+            namespace: $namespace,
+            isTrait: $trait !== null,
+        );
     }
 
     /**
-     * @param  list<StaticCall>  $calls
-     * @param  array<string, string>  $useMap
-     * @param  array<Node>  $stmts
-     * @return array<string, list<string>>
+     * Find root files — classes that extend known Filament base classes.
+     *
+     * @param  array<string, FileMetadata>  $index
+     * @return list<string> file paths of root classes
      */
-    protected function collectCustomComponentCallers(array $calls, array $useMap, ?string $namespace, array $stmts, NodeFinder $finder): array
+    protected function findResourceRoots(array $index): array
     {
-        $callers = [];
+        $roots = [];
 
-        foreach ($calls as $call) {
-            if (! $this->isNamedStaticCall($call, 'make')) {
-                continue;
-            }
-
-            $componentClass = NamespaceHelper::toFullyQualified((string) $call->class, $useMap, $namespace);
-
-            if ($this->isFilamentClass($componentClass)) {
-                continue;
-            }
-
-            $callerFqcn = $this->resolveEnclosingClass($call, $stmts, $finder, $namespace);
-
-            if ($callerFqcn !== null && $callerFqcn !== $componentClass) {
-                $callers = $this->mergeCallerMaps($callers, [$componentClass => [$callerFqcn]]);
+        foreach ($index as $filePath => $record) {
+            if (in_array($record->extends, self::ROOT_BASE_CLASSES, true)) {
+                $roots[] = $filePath;
             }
         }
 
-        return $callers;
+        return $roots;
     }
 
     /**
-     * @phpstan-assert-if-true Identifier $call->name
-     * @phpstan-assert-if-true Name $call->class
+     * BFS from roots through the file index, collecting outgoing edges.
+     *
+     * @param  list<string>  $rootFilePaths
+     * @param  array<string, FileMetadata>  $index
+     * @param  array<string, string>  $fullyQualifiedNameLookup  fqcn => filePath
+     * @return array<string, list<string>> source FQCN => list<target FQCN>
      */
-    protected function isNamedStaticCall(StaticCall $call, string $methodName): bool
-    {
-        return $call->name instanceof Identifier
-            && $call->name->name === $methodName
-            && $call->class instanceof Name;
-    }
+    protected function buildClassDependencyGraph(
+        array $rootFilePaths,
+        array $index,
+        array $fullyQualifiedNameLookup
+    ): array {
+        $graph = [];
+        $visited = [];
+        $queue = $rootFilePaths;
 
-    /**
-     * @param  array<string, list<string>>  $base
-     * @param  array<string, list<string>>  $additions
-     * @return array<string, list<string>>
-     */
-    protected function mergeCallerMaps(array $base, array $additions): array
-    {
-        foreach ($additions as $target => $callerList) {
-            foreach ($callerList as $caller) {
-                if (! in_array($caller, $base[$target] ?? [], true)) {
-                    $base[$target][] = $caller;
+        while ($queue !== []) {
+            $filePath = array_shift($queue);
+
+            if (isset($visited[$filePath])) {
+                continue;
+            }
+            $visited[$filePath] = true;
+
+            $record = $index[$filePath];
+            $sourceClass = $record->fullyQualifiedName;
+            $targets = $this->collectDependenciesForClass($filePath, $record, $fullyQualifiedNameLookup);
+
+            if ($targets !== []) {
+                $graph[$sourceClass] = $targets;
+            }
+
+            // Enqueue unvisited targets
+            foreach ($targets as $targetClass) {
+                $targetFile = $fullyQualifiedNameLookup[$targetClass];
+                if (! isset($visited[$targetFile])) {
+                    $queue[] = $targetFile;
                 }
             }
         }
 
-        return $base;
-    }
-
-    protected function isFilamentClass(string $className): bool
-    {
-        return array_any(self::FILAMENT_PREFIXES, fn (string $prefix) => str_starts_with($className, $prefix));
+        return $graph;
     }
 
     /**
-     * @param  array<Node>  $stmts
-     */
-    protected function resolveEnclosingClass(StaticCall $call, array $stmts, NodeFinder $finder, ?string $namespace): ?string
-    {
-        $callerClass = $this->findEnclosingClass($call, $stmts, $finder);
-
-        return $callerClass !== null && NamespaceHelper::isRelativeNamespace($namespace)
-            ? NamespaceHelper::prependNamespace($namespace, $callerClass)
-            : $callerClass;
-    }
-
-    /**
-     * @param  array<Node>  $stmts
-     */
-    protected function findEnclosingClass(StaticCall $call, array $stmts, NodeFinder $finder): ?string
-    {
-        /** @var list<Class_> $classes */
-        $classes = $finder->findInstanceOf($stmts, Class_::class);
-
-        foreach ($classes as $class) {
-            if ($class->name === null) {
-                continue;
-            }
-
-            if ($this->nodeIsInsideClass($call, $class)) {
-                return (string) $class->name;
-            }
-        }
-
-        return null;
-    }
-
-    protected function nodeIsInsideClass(Node $node, Class_ $class): bool
-    {
-        return $node->getStartLine() >= $class->getStartLine()
-            && $node->getEndLine() <= $class->getEndLine();
-    }
-
-    /**
+     * Collect all dependency edges for a single class: static calls, extends, trait uses.
+     *
+     * @param  array<string, string>  $fullyQualifiedNameLookup
      * @return list<string>
      */
-    protected function discoverPhpFiles(): array
-    {
-        $files = [];
-        $allPaths = $this->resolveScanPaths();
+    protected function collectDependenciesForClass(
+        string $filePath,
+        FileMetadata $record,
+        array $fullyQualifiedNameLookup
+    ): array {
+        $targets = array_filter(
+            $this->findStaticCallTargets($filePath, $record),
+            fn (string $class) => isset($fullyQualifiedNameLookup[$class]),
+        );
 
-        foreach ($allPaths as $path) {
-            if (is_file($path)) {
-                $files[] = $path;
+        if ($record->extends !== null && isset($fullyQualifiedNameLookup[$record->extends])) {
+            $targets[] = $record->extends;
+        }
 
-                continue;
-            }
-
-            if (! is_dir($path)) {
-                continue;
-            }
-
-            $sfFinder = new Finder;
-            $sfFinder->files()->name('*.php')->in($path);
-
-            foreach ($sfFinder as $file) {
-                $files[] = $file->getPathname();
+        foreach ($record->traits as $traitClass) {
+            if (isset($fullyQualifiedNameLookup[$traitClass])) {
+                $targets[] = $traitClass;
             }
         }
 
-        return $files;
-    }
-
-    /** @return list<string> */
-    protected function resolveScanPaths(): array
-    {
-        if ($this->filamentPath !== []) {
-            return array_map(
-                fn (string $path) => $this->currentWorkingDirectory.'/'.$path,
-                $this->filamentPath,
-            );
-        }
-
-        return array_values(array_unique(array_merge($this->analysedPaths, $this->analysedPathsFromConfig)));
+        return array_values(array_unique($targets));
     }
 
     /**
-     * Dump the caller map as a nested tree for debugging.
+     * Find static call targets (::configure() and ::make()) in a file's AST.
      *
      * @return list<string>
      */
-    public function dumpCallerTree(): array
+    protected function findStaticCallTargets(string $filePath, FileMetadata $record): array
     {
-        $callerMap = $this->buildCallerMap();
-        $lines = [];
-
-        ksort($callerMap);
-
-        foreach ($callerMap as $target => $directCallers) {
-            $lines[] = $target;
-
-            sort($directCallers);
-
-            foreach ($directCallers as $caller) {
-                $this->dumpCallerBranch($caller, $callerMap, $lines, 1, [$target]);
-            }
-
-            $lines[] = '';
+        $code = file_get_contents($filePath);
+        if ($code === false) {
+            return [];
         }
 
-        return $lines;
+        $stmts = $this->fileParser->parse($code);
+        $finder = $this->fileParser->nodeFinder();
+
+        /** @var list<StaticCall> $calls */
+        $calls = $finder->findInstanceOf($stmts, StaticCall::class);
+
+        $targets = [];
+
+        foreach ($calls as $call) {
+            if (! $call->name instanceof Identifier || ! $call->class instanceof Name) {
+                continue;
+            }
+
+            $methodName = $call->name->name;
+            if ($methodName !== 'configure' && $methodName !== 'make') {
+                continue;
+            }
+
+            $targetClass = NamespaceHelper::toFullyQualified(
+                (string) $call->class,
+                $record->useMap,
+                $record->namespace
+            );
+
+            if (! $this->isFilamentClass($targetClass)) {
+                $targets[] = $targetClass;
+            }
+        }
+
+        return $targets;
     }
 
     /**
-     * @param  array<string, list<string>>  $callerMap
-     * @param  list<string>  $lines
-     * @param  list<string>  $visited
+     * DFS from each root through the reference graph, tagging reachable nodes with root FQCNs.
+     *
+     * @param  list<string>  $rootFilePaths
+     * @param  array<string, FileMetadata>  $index
+     * @param  array<string, list<string>>  $graph  source FQCN => list<target FQCN>
+     * @return array<string, list<string>> target FQCN => list<root FQCNs>
      */
-    protected function dumpCallerBranch(string $caller, array $callerMap, array &$lines, int $depth, array $visited): void
+    protected function assignRootsToReachableClasses(array $rootFilePaths, array $index, array $graph): array
     {
-        $indent = str_repeat('  ', $depth);
-        $lines[] = "{$indent}← $caller";
+        $contextMap = [];
 
-        if (in_array($caller, $visited, true)) {
-            return;
+        foreach ($rootFilePaths as $rootFilePath) {
+            $rootClass = $index[$rootFilePath]->fullyQualifiedName;
+            $contextMap = $this->tagClassesReachableFromRoot($rootClass, $rootClass, $graph, $contextMap, []);
         }
 
-        $transitiveCallers = $callerMap[$caller] ?? [];
-        sort($transitiveCallers);
+        return $contextMap;
+    }
 
-        foreach ($transitiveCallers as $transitive) {
-            $this->dumpCallerBranch($transitive, $callerMap, $lines, $depth + 1, [...$visited, $caller]);
+    /**
+     * @param  array<string, list<string>>  $graph
+     * @param  array<string, list<string>>  $contextMap
+     * @param  list<string>  $visited
+     * @return array<string, list<string>>
+     */
+    protected function tagClassesReachableFromRoot(
+        string $rootClass,
+        string $currentFqcn,
+        array $graph,
+        array $contextMap,
+        array $visited
+    ): array {
+        foreach ($graph[$currentFqcn] ?? [] as $targetClass) {
+            if (in_array($targetClass, $visited, true)) {
+                continue;
+            }
+
+            if (! in_array($rootClass, $contextMap[$targetClass] ?? [], true)) {
+                $contextMap[$targetClass][] = $rootClass;
+            }
+
+            $contextMap = $this->tagClassesReachableFromRoot(
+                $rootClass,
+                $targetClass,
+                $graph,
+                $contextMap,
+                [...$visited, $targetClass]
+            );
         }
+
+        return $contextMap;
+    }
+
+    /**
+     * Build reverse lookup: FQCN => filePath.
+     *
+     * @param  array<string, FileMetadata>  $index
+     * @return array<string, string>
+     */
+    protected function mapClassNamesToFiles(array $index): array
+    {
+        $lookup = [];
+
+        foreach ($index as $filePath => $record) {
+            $lookup[$record->fullyQualifiedName] = $filePath;
+        }
+
+        return $lookup;
     }
 }

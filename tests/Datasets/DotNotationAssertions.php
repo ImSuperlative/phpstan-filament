@@ -8,7 +8,7 @@ dataset('dot-notation-types', function () {
     ]);
 
     return TypeInferenceTestCase::assertTypesForFile(
-        __DIR__.'/../Fixtures/App/ClosureTests/StateDotNotationAssertions.php',
+        fixture_path('App/ClosureTests/StateDotNotationAssertions.php'),
     );
 });
 
@@ -18,6 +18,6 @@ dataset('nested-entry-types', function () {
     ]);
 
     return TypeInferenceTestCase::assertTypesForFile(
-        __DIR__.'/../Fixtures/App/ClosureTests/StateNestedEntryAssertions.php',
+        fixture_path('App/ClosureTests/StateNestedEntryAssertions.php'),
     );
 });

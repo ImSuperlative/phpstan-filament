@@ -7,3 +7,12 @@ services:
         implement: ImSuperlative\PhpstanFilament\Tests\Support\MakeFieldValidationRuleFactory
     injectionMapFactoryFactory:
         implement: ImSuperlative\PhpstanFilament\Tests\Support\InjectionMapFactoryFactory
+    virtualAnnotationProviderFactory:
+        implement: ImSuperlative\PhpstanFilament\Tests\Support\VirtualAnnotationProviderFactory
+        arguments:
+            #enabled: %filament.enabled%
+            #warnOnVirtual: %filament.warnOnVirtual%
+            #filamentPaths: %filament.filamentPaths%
+            currentWorkingDirectory: %currentWorkingDirectory%
+            #analysedPaths: %analysedPaths%
+            analysedPathsFromConfig: %analysedPathsFromConfig%

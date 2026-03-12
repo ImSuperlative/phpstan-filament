@@ -16,6 +16,7 @@ trait TracksMemory
     protected static int $_memMax = 0;
 
     private const int MB = 1048576;
+
     private const int KB = 1024;
 
     #[Before]

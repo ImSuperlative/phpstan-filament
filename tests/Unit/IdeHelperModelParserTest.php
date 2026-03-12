@@ -22,7 +22,7 @@ function describeType(Type $type): string
 }
 
 it('parses all 7 models from barryvdh file', function () {
-    $result = $this->parser->parseFile(__DIR__.'/../Fixtures/App/Models/_ide_helper_models.php');
+    $result = $this->parser->parseFile(fixture_path('App/Models/_ide_helper_models.php'));
 
     expect($result)->toHaveCount(7)
         ->and(array_keys($result))->toBe([
@@ -37,7 +37,7 @@ it('parses all 7 models from barryvdh file', function () {
 });
 
 it('extracts @property with correct types from barryvdh file', function () {
-    $result = $this->parser->parseFile(__DIR__.'/../Fixtures/App/Models/_ide_helper_models.php');
+    $result = $this->parser->parseFile(fixture_path('App/Models/_ide_helper_models.php'));
 
     $post = $result['Fixtures\App\Models\Post'];
 
@@ -48,7 +48,7 @@ it('extracts @property with correct types from barryvdh file', function () {
 });
 
 it('extracts @property-read as readOnly from barryvdh file', function () {
-    $result = $this->parser->parseFile(__DIR__.'/../Fixtures/App/Models/_ide_helper_models.php');
+    $result = $this->parser->parseFile(fixture_path('App/Models/_ide_helper_models.php'));
 
     $post = $result['Fixtures\App\Models\Post'];
 
@@ -62,7 +62,7 @@ it('extracts @property-read as readOnly from barryvdh file', function () {
 });
 
 it('extracts @method with static flag and return type from barryvdh file', function () {
-    $result = $this->parser->parseFile(__DIR__.'/../Fixtures/App/Models/_ide_helper_models.php');
+    $result = $this->parser->parseFile(fixture_path('App/Models/_ide_helper_models.php'));
 
     $post = $result['Fixtures\App\Models\Post'];
 

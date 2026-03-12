@@ -19,7 +19,7 @@ beforeEach(function () {
     $typeStringParser = TypeStringParser::make();
 
     $this->modelParser = new IdeHelperModelParser($parser, $typeStringParser->getLexer(), $typeStringParser->getPhpDocParser());
-    $customPath = __DIR__.'/../Fixtures/App/Models/_ide_helper_models.php';
+    $customPath = fixture_path('App/Models/_ide_helper_models.php');
     $registry = new IdeHelperRegistry($this->modelParser, true, $customPath, __DIR__);
 
     $this->extension = new IdeHelperPropertiesExtension($registry);
