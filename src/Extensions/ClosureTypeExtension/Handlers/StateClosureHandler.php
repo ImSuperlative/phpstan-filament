@@ -13,7 +13,7 @@ use PHPStan\Type\TypeCombinator;
 final class StateClosureHandler implements ClosureParameterHandler
 {
     public function __construct(
-        protected readonly bool $stateClosure,
+        protected readonly bool $typeClosures,
         protected readonly StateTypeResolver $stateTypeResolver,
     ) {}
 
@@ -42,7 +42,7 @@ final class StateClosureHandler implements ClosureParameterHandler
 
     protected function shouldResolveType(string $paramName, bool $hasTypeHint): bool
     {
-        return $this->stateClosure
+        return $this->typeClosures
             && ! $hasTypeHint
             && ($paramName === 'state' || $paramName === 'old' || $paramName === 'oldRaw');
     }

@@ -46,7 +46,7 @@ function createRecordHandler(): RecordClosureHandler
     $reflectionProvider = PHPStanTestCase::getContainer()->getByType(ReflectionProvider::class);
 
     return new RecordClosureHandler(
-        recordClosure: true,
+        typeClosures: true,
         filamentClassHelper: new FilamentClassHelper($reflectionProvider),
     );
 }

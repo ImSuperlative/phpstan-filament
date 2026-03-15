@@ -1,2 +1,0 @@
-# Feature #2: $record in closures type inference
-# Enabled by: PhpstanFilament.typeRecordClosures (default: true)

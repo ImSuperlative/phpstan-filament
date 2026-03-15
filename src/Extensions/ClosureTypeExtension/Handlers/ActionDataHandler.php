@@ -24,7 +24,7 @@ use PHPStan\Type\TypeCombinator;
 final class ActionDataHandler implements ClosureParameterHandler
 {
     public function __construct(
-        protected readonly bool $actionData,
+        protected readonly bool $typeClosures,
         protected readonly FormComponentStateMap $componentStateMap,
         protected readonly FormComponentTypeNarrower $typeNarrower,
         protected readonly FormComponentChainResolver $chainResolver,
@@ -45,7 +45,7 @@ final class ActionDataHandler implements ClosureParameterHandler
 
     protected function shouldResolveType(string $paramName): bool
     {
-        return $this->actionData && $paramName === 'data';
+        return $this->typeClosures && $paramName === 'data';
     }
 
     /**

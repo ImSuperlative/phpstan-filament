@@ -16,7 +16,7 @@ final class RecordClosureHandler implements ClosureParameterHandler
     protected const array NARROW_PARAMS = ['record', 'replica'];
 
     public function __construct(
-        protected readonly bool $recordClosure,
+        protected readonly bool $typeClosures,
         protected readonly FilamentClassHelper $filamentClassHelper,
     ) {}
 
@@ -45,7 +45,7 @@ final class RecordClosureHandler implements ClosureParameterHandler
 
     protected function shouldResolveType(string $paramName, bool $hasTypeHint, ClosureHandlerContext $context): bool
     {
-        return $this->recordClosure
+        return $this->typeClosures
             && ! $hasTypeHint
             && in_array($paramName, self::NARROW_PARAMS, true)
             && $context->modelClasses !== [];

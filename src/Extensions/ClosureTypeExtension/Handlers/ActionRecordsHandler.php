@@ -16,7 +16,7 @@ use PHPStan\Type\TypeCombinator;
 final class ActionRecordsHandler implements ClosureParameterHandler
 {
     public function __construct(
-        protected readonly bool $actionRecords,
+        protected readonly bool $typeClosures,
     ) {}
 
     public function resolveType(string $paramName, bool $hasTypeHint, ClosureHandlerContext $context, ?Type $mapType): ?Type
@@ -41,7 +41,7 @@ final class ActionRecordsHandler implements ClosureParameterHandler
 
     protected function shouldResolveType(string $paramName, ClosureHandlerContext $context): bool
     {
-        return $this->actionRecords
+        return $this->typeClosures
             && $context->modelClasses !== []
             && ($paramName === 'records' || $paramName === 'selectedRecords');
     }

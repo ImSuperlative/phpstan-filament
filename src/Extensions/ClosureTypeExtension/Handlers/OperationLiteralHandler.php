@@ -13,7 +13,7 @@ use PHPStan\Type\UnionType;
 final class OperationLiteralHandler implements ClosureParameterHandler
 {
     public function __construct(
-        protected readonly bool $operationLiteral,
+        protected readonly bool $typeClosures,
     ) {}
 
     public function resolveType(string $paramName, bool $hasTypeHint, ClosureHandlerContext $context, ?Type $mapType): ?Type
@@ -31,7 +31,7 @@ final class OperationLiteralHandler implements ClosureParameterHandler
 
     protected function shouldResolveType(string $paramName, bool $hasTypeHint): bool
     {
-        return $this->operationLiteral
+        return $this->typeClosures
             && ! $hasTypeHint
             && ($paramName === 'operation' || $paramName === 'context');
     }

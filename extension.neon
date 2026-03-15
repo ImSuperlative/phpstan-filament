@@ -1,11 +1,7 @@
 parametersSchema:
     PhpstanFilament: structure([
+        typeClosures: bool()
         typeOwnerRecord: bool()
-        typeRecordClosures: bool()
-        typeStateClosures: bool()
-        typeOperationLiterals: bool()
-        typeActionData: bool()
-        typeActionRecords: bool()
         typeMacroMethods: bool()
         typeIdeHelper: bool()
         filamentPaths: arrayOf(string())
@@ -16,7 +12,6 @@ parametersSchema:
         checkRelationships: bool()
         checkRedundantEnum: bool()
         checkMissingContext: bool()
-        autoInferContext: bool()
         # Extend
         closureInjectionMethods: arrayOf(arrayOf(string()))
     ])
@@ -25,12 +20,8 @@ parameters:
     bootstrapFiles:
         - src/helpers.php
     PhpstanFilament:
+        typeClosures: true
         typeOwnerRecord: true
-        typeRecordClosures: true
-        typeStateClosures: true
-        typeOperationLiterals: true
-        typeActionData: true
-        typeActionRecords: true
         typeMacroMethods: true
         typeIdeHelper: true
         filamentPaths: []
@@ -41,7 +32,6 @@ parameters:
         checkRelationships: true
         checkRedundantEnum: true
         checkMissingContext: true
-        autoInferContext: false
         # Extend
         closureInjectionMethods: []
 
@@ -119,22 +109,22 @@ services:
     -
         class: ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\Handlers\OperationLiteralHandler
         arguments:
-            operationLiteral: %PhpstanFilament.typeOperationLiterals%
+            typeClosures: %PhpstanFilament.typeClosures%
 
     -
         class: ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\Handlers\RecordClosureHandler
         arguments:
-            recordClosure: %PhpstanFilament.typeRecordClosures%
+            typeClosures: %PhpstanFilament.typeClosures%
 
     -
         class: ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\Handlers\ActionRecordsHandler
         arguments:
-            actionRecords: %PhpstanFilament.typeActionRecords%
+            typeClosures: %PhpstanFilament.typeClosures%
 
     -
         class: ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\Handlers\ActionDataHandler
         arguments:
-            actionData: %PhpstanFilament.typeActionData%
+            typeClosures: %PhpstanFilament.typeClosures%
 
     -
         class: ImSuperlative\PhpstanFilament\Resolvers\StateTypeResolver
@@ -144,7 +134,7 @@ services:
     -
         class: ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\Handlers\StateClosureHandler
         arguments:
-            stateClosure: %PhpstanFilament.typeStateClosures%
+            typeClosures: %PhpstanFilament.typeClosures%
 
     -
         class: ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\Handlers\LivewireClosureHandler
@@ -184,16 +174,10 @@ services:
 
 includes:
     - config/owner-record.neon
-    - config/record-closure.neon
-    - config/state-closure.neon
     - config/make-field-validation.neon
-    - config/operation-literal.neon
     - config/relationship.neon
-    - config/action-data.neon
-    - config/action-records.neon
     - config/closure-injection.neon
     - config/redundant-enum.neon
-    - config/macro.neon
     - config/ide-helper.neon
     - config/scanner.neon
     - config/missing-context.neon

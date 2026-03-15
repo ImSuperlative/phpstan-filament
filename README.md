@@ -28,11 +28,7 @@ All features are enabled by default. Toggle them in your `phpstan.neon`:
 ```neon
 parameters:
     PhpstanFilament:
-        typeRecordClosures: true
-        typeStateClosures: true
-        typeOperationLiterals: true
-        typeActionData: true
-        typeActionRecords: true
+        typeClosures: true
         typeOwnerRecord: true
         typeMacroMethods: true
         typeIdeHelper: true
@@ -42,8 +38,8 @@ parameters:
         checkFieldPaths: 1
         checkRelationships: true
         checkRedundantEnum: true
+        checkMissingContext: true
         filamentPaths: []
-        autoInferContext: false
         closureInjectionMethods: []
 ```
 

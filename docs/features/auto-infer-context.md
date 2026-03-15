@@ -1,18 +1,16 @@
 # Auto-infer context
 
-Pre-scans your project for `::configure()` call sites to automatically infer model and page context for shared schema classes.
+The scanner automatically pre-scans your project for `::configure()` and `::make()` call sites to infer model and page context for shared schema classes. This is always enabled.
 
 ## Configuration
 
-| Option             | Default | Description                                          |
-|--------------------|---------|------------------------------------------------------|
-| `autoInferContext`  | `false` | Enable call-site pre-scanning                        |
-| `filamentPaths`      | `[]`    | Paths to scan (defaults to PHPStan's analysed paths) |
+| Option          | Default | Description                                          |
+|-----------------|---------|------------------------------------------------------|
+| `filamentPaths` | `[]`    | Paths to scan (defaults to PHPStan's analysed paths) |
 
 ```neon
 parameters:
     PhpstanFilament:
-        autoInferContext: true
         filamentPaths:
             - app/Filament
 ```
@@ -35,7 +33,7 @@ class PostForm
 }
 ```
 
-Without this feature, shared schemas need explicit annotations to provide context:
+If the scanner cannot determine context (e.g. the schema is used outside the scanned paths), use explicit annotations:
 
 ```php
 /** @filament-page EditPost<Post> */

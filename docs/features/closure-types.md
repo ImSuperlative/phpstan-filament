@@ -4,17 +4,13 @@ Automatically types closure parameters in Filament component methods so PHPStan 
 
 ## Configuration
 
-| Option                | Default | Description                                          |
-|-----------------------|---------|------------------------------------------------------|
-| `typeRecordClosures`  | `true`  | Type `$record` and `$replica` from model context     |
-| `typeStateClosures`   | `true`  | Type `$state`, `$old`, `$oldRaw` from component type |
-| `typeOperationLiterals` | `true` | Narrow `$operation`/`$context` to string literals    |
-| `typeActionData`      | `true`  | Infer `$data` array shape from action schema          |
-| `typeActionRecords`   | `true`  | Type `$records`/`$selectedRecords` in bulk actions    |
+| Option         | Default | Description                                      |
+|----------------|---------|--------------------------------------------------|
+| `typeClosures` | `true`  | Enable all closure parameter type inference      |
 
 ## Record typing
 
-When `typeRecordClosures: true`, `$record` resolves to the model class from context. In form components the record is nullable (it may not exist yet during creation). In table columns it is always present:
+When `typeClosures: true`, `$record` resolves to the model class from context. In form components the record is nullable (it may not exist yet during creation). In table columns it is always present:
 
 ```php
 TextInput::make('title')
@@ -32,7 +28,7 @@ The `$replica` parameter works the same way as `$record`.
 
 ## State typing
 
-When `typeStateClosures: true`, `$state` resolves based on the component class:
+`$state` resolves based on the component class:
 
 ```php
 TextInput::make('title')
@@ -68,7 +64,7 @@ The `$old` and `$oldRaw` parameters follow the same type as `$state`.
 
 ## Operation literal
 
-When `typeOperationLiterals: true`, `$operation` and `$context` resolve to a union of string literals instead of `string`:
+`$operation` and `$context` resolve to a union of string literals instead of `string`:
 
 ```php
 TextInput::make('title')
@@ -110,7 +106,7 @@ TextInput::make('category')
 
 ## Action data
 
-When `typeActionData: true`, `$data` in action closures resolves to an array shape inferred from the action's `schema()` or `form()`:
+`$data` in action closures resolves to an array shape inferred from the action's `schema()` or `form()`:
 
 ```php
 Action::make('updateTitle')
@@ -125,7 +121,7 @@ Action::make('updateTitle')
 
 ## Action records
 
-When `typeActionRecords: true`, `$records` and `$selectedRecords` resolve to a typed collection in bulk actions:
+`$records` and `$selectedRecords` resolve to a typed collection in bulk actions:
 
 ```php
 BulkAction::make('publishSelected')

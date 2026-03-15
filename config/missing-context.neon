@@ -1,6 +1,5 @@
 # Missing @filament-page annotation detection
 # Enabled by: PhpstanFilament.checkMissingContext (default: true)
-# Requires: PhpstanFilament.autoInferContext to scan for virtual annotations
 
 services:
     -
