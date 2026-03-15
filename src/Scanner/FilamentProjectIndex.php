@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace ImSuperlative\PhpstanFilament\Scanner;
 
 use ImSuperlative\PhpstanFilament\Data\FileMetadata;
+use ImSuperlative\PhpstanFilament\Data\Scanner\ComponentContext;
 use ImSuperlative\PhpstanFilament\Data\Scanner\ComponentToResources;
 use ImSuperlative\PhpstanFilament\Data\Scanner\ResourceModels;
 use ImSuperlative\PhpstanFilament\Data\Scanner\ResourcePages;
 use ImSuperlative\PhpstanFilament\Data\Scanner\ResourceRelations;
+use ImSuperlative\PhpstanFilament\Resolvers\ComponentProvider;
+use PHPStan\Analyser\Scope;
 
-final class FilamentProjectIndex
+class FilamentProjectIndex
 {
     protected ?ProjectScanResult $scanResult = null;
 
@@ -58,6 +61,23 @@ final class FilamentProjectIndex
         return $this->scanResult()->get(ResourceModels::class)?->get($resourceClass);
     }
 
+    public function getComponent(string $class): ?ComponentProvider
+    {
+        return $this
+            ->scanResult()
+            ->find(ComponentContext::class)
+            ?->into($class, ComponentProvider::class);
+    }
+
+    public function findComponent(?string $class): ?ComponentProvider
+    {
+        if ($class === null) {
+            return null;
+        }
+
+        return $this->getComponent($class);
+    }
+
     /**
      * @template T of object
      *
@@ -73,5 +93,17 @@ final class FilamentProjectIndex
     public function has(string $class): bool
     {
         return $this->scanResult()->has($class);
+    }
+
+    public function resolveModelFromScope(Scope $scope): ?string
+    {
+        $classReflection = $scope->getClassReflection();
+        if ($classReflection === null) {
+            return null;
+        }
+
+        $models = $this->getComponent($classReflection->getName())?->getModelClasses() ?? [];
+
+        return count($models) === 1 ? $models[0] : null;
     }
 }

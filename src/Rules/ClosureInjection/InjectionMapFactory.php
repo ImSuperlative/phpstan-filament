@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ImSuperlative\PhpstanFilament\Rules\ClosureInjection;
 
 use Composer\Autoload\ClassLoader;
+use ImSuperlative\PhpstanFilament\Support\FilamentComponent as FC;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\StaticType;
@@ -138,8 +139,8 @@ final class InjectionMapFactory
 
         foreach (require $classmap as $class => $file) {
             if (
-                $class === 'Filament\\Support\\Concerns\\EvaluatesClosures'
-                || ! str_starts_with($class, 'Filament\\')
+                $class === FC::EVALUATES_CLOSURES
+                || ! str_starts_with($class, FC::FILAMENT_NS)
             ) {
                 continue;
             }

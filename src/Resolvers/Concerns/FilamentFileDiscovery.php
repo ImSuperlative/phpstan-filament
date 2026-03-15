@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Resolvers\Concerns;
 
+use ImSuperlative\PhpstanFilament\Support\FilamentComponent as FC;
 use ImSuperlative\PhpstanFilament\Support\PathResolver;
 
 trait FilamentFileDiscovery
 {
     protected const array FILAMENT_PREFIXES = [
-        'Filament\\',
-        'Illuminate\\',
+        FC::FILAMENT_NS,
+        FC::ILLUMINATE_NS,
         'Livewire\\',
     ];
 

@@ -4,8 +4,8 @@ namespace ImSuperlative\PhpstanFilament\Tests;
 
 use ImSuperlative\PhpstanFilament\FieldValidationLevel;
 use ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation\MakeFieldValidationRule;
-use ImSuperlative\PhpstanFilament\Tests\Support\AggregateFieldValidatorFactory;
-use ImSuperlative\PhpstanFilament\Tests\Support\MakeFieldValidationRuleFactory;
+use ImSuperlative\PhpstanFilament\Tests\Factories\AggregateFieldValidatorFactory;
+use ImSuperlative\PhpstanFilament\Tests\Factories\MakeFieldValidationRuleFactory;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 

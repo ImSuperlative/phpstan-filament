@@ -1,5 +1,6 @@
 includes:
     - ../../extension.neon
+    - ../phpstan-test-services.neon
 
 parameters:
     PhpstanFilament:

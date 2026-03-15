@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ImSuperlative\PhpstanFilament\Extensions\MacroMethods;
 
 use Closure;
+use ImSuperlative\PhpstanFilament\Support\FilamentComponent as FC;
 use PHPStan\PhpDoc\StubFilesExtension;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\MethodReflection;
@@ -14,8 +15,6 @@ use ReflectionException;
 
 final class MacroMethodsClassReflectionExtension implements MethodsClassReflectionExtension, StubFilesExtension
 {
-    private const string FILAMENT_MACROABLE = 'Filament\Support\Concerns\Macroable';
-
     /** @var array<string, MethodReflection> */
     private array $methods = [];
 
@@ -97,7 +96,7 @@ final class MacroMethodsClassReflectionExtension implements MethodsClassReflecti
     protected function canResolveMacros(ClassReflection $classReflection): bool
     {
         return $this->macroSupport
-            && trait_exists(self::FILAMENT_MACROABLE)
+            && trait_exists(FC::MACROABLE)
             && $this->usesFilamentMacroable($classReflection);
     }
 
@@ -106,7 +105,7 @@ final class MacroMethodsClassReflectionExtension implements MethodsClassReflecti
         $className = $classReflection->getName();
 
         return $this->traitCache[$className] ?? ($this->traitCache[$className] = array_key_exists(
-            self::FILAMENT_MACROABLE,
+            FC::MACROABLE,
             $classReflection->getTraits(true),
         ));
     }

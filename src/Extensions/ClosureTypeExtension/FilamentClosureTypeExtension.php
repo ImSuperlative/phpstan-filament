@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension;
 
-use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\TypedInjectionMap;
+use ImSuperlative\PhpstanFilament\Scanner\FilamentProjectIndex;
 use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ArrowFunction;
@@ -28,7 +28,7 @@ class FilamentClosureTypeExtension implements MethodParameterClosureTypeExtensio
      */
     public function __construct(
         protected readonly FilamentClassHelper $filamentClassHelper,
-        protected readonly ComponentContextResolver $componentContextResolver,
+        protected readonly FilamentProjectIndex $projectIndex,
         protected readonly TypedInjectionMap $injectionMap,
         protected readonly array $handlers,
     ) {}
@@ -53,8 +53,13 @@ class FilamentClosureTypeExtension implements MethodParameterClosureTypeExtensio
             return null;
         }
 
+        $component = $this->projectIndex->findComponent($scope->getClassReflection()?->getName());
+        if ($component === null) {
+            return null;
+        }
+
         $declaringClass = $methodReflection->getDeclaringClass()->getName();
-        $modelClasses = $this->componentContextResolver->resolveModelClassesFromScope($scope);
+        $modelClasses = $component->getModelClasses();
         $callerClasses = $scope->getType($methodCall->var)->getObjectClassNames();
         $callerClass = $callerClasses[0] ?? null;
 

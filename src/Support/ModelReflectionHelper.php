@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Support;
 
-use PHPStan\Analyser\OutOfClassScope;
+use ImSuperlative\PhpstanFilament\Support\FilamentComponent as FC;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassMemberAccessAnswerer;
 use PHPStan\Reflection\ClassReflection;
@@ -15,10 +15,6 @@ use PHPStan\Type\TypeCombinator;
 
 final class ModelReflectionHelper
 {
-    public const string RELATION_BASE = 'Illuminate\Database\Eloquent\Relations\Relation';
-
-    public const string MODEL_BASE = 'Illuminate\Database\Eloquent\Model';
-
     public function __construct(
         protected ReflectionProvider $reflectionProvider,
     ) {}
@@ -139,15 +135,6 @@ final class ModelReflectionHelper
         return $this->doResolveRelatedModel($modelClass, $methodName, $scope);
     }
 
-    /**
-     * Scope-free variant for use during scanning (e.g. VirtualAnnotationProvider).
-     * Uses OutOfClassScope — works for public relationship methods.
-     */
-    public function resolveRelatedModelStatically(string $modelClass, string $methodName): ?string
-    {
-        return $this->doResolveRelatedModel($modelClass, $methodName, new OutOfClassScope);
-    }
-
     protected function doResolveRelatedModel(string $modelClass, string $methodName, ClassMemberAccessAnswerer $scope): ?string
     {
         if (! $this->reflectionProvider->hasClass($modelClass)) {
@@ -168,11 +155,11 @@ final class ModelReflectionHelper
                 ->getVariants()[0]
                 ->getReturnType();
 
-            $relatedType = $returnType->getTemplateType(self::RELATION_BASE, 'TRelatedModel');
+            $relatedType = $returnType->getTemplateType(FC::RELATION, 'TRelatedModel');
             $relatedClasses = $relatedType->getObjectClassNames();
 
             // Skip base Model class (e.g. from morphTo) — can't determine the actual model
-            if ($relatedClasses !== [] && $relatedClasses[0] !== self::MODEL_BASE) {
+            if ($relatedClasses !== [] && $relatedClasses[0] !== FC::MODEL) {
                 return $relatedClasses[0];
             }
         }
@@ -188,7 +175,7 @@ final class ModelReflectionHelper
             ->getReturnType();
 
         // Use !no() to handle union types like HasMany|_IH_QueryBuilder — if any part is a Relation, it counts
-        return ! new ObjectType(self::RELATION_BASE)->isSuperTypeOf($returnType)->no();
+        return ! new ObjectType(FC::RELATION)->isSuperTypeOf($returnType)->no();
     }
 
     /**
@@ -219,7 +206,7 @@ final class ModelReflectionHelper
 
         $classNames = $type->getObjectClassNames();
 
-        if ($classNames === [] || $classNames[0] === self::MODEL_BASE) {
+        if ($classNames === [] || $classNames[0] === FC::MODEL) {
             return null;
         }
 
@@ -228,6 +215,6 @@ final class ModelReflectionHelper
 
     protected function isModelSubclass(Type $type): bool
     {
-        return new ObjectType(self::MODEL_BASE)->isSuperTypeOf($type)->yes();
+        return new ObjectType(FC::MODEL)->isSuperTypeOf($type)->yes();
     }
 }

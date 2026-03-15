@@ -6,6 +6,7 @@ namespace ImSuperlative\PhpstanFilament\Resolvers;
 
 use ImSuperlative\PhpstanFilament\Data\ChainAnalysis;
 use ImSuperlative\PhpstanFilament\Support\AstHelper;
+use ImSuperlative\PhpstanFilament\Support\FilamentComponent as FC;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ClassConstFetch;
@@ -26,22 +27,17 @@ final class FormComponentChainResolver
 
         $isRequired = false;
 
-        $walkResult = AstHelper::walkMethodChain($expr, function (string $methodName, MethodCall $call) use ($scope, &$enumClass, &$literalOptionKeys, &$isMultiple, &$isRequired) {
-            $isMultiple = $isMultiple || $methodName === 'multiple';
+        $walkResult = AstHelper::walkMethodChain(
+            $expr,
+            fn (string $methodName, MethodCall $call) => $this->analyzeChainCall($methodName, $call, $scope),
+        );
 
-            if ($methodName === 'required') {
-                $isRequired = $this->isRequiredCall($call);
-            }
-
-            if ($methodName === 'enum' || $methodName === 'options') {
-                $arg = AstHelper::firstArgValue($call);
-
-                if ($arg !== null) {
-                    $enumClass ??= $this->extractEnumClass($arg, $scope);
-                    $literalOptionKeys ??= $this->extractLiteralOptionKeys($arg);
-                }
-            }
-        });
+        foreach ($walkResult->visitorResults as $result) {
+            $isMultiple = $isMultiple || $result['isMultiple'];
+            $isRequired = $isRequired || $result['isRequired'];
+            $enumClass ??= $result['enumClass'];
+            $literalOptionKeys ??= $result['literalOptionKeys'];
+        }
 
         return new ChainAnalysis(
             componentClass: $componentClass,
@@ -52,6 +48,31 @@ final class FormComponentChainResolver
             isRequired: $isRequired,
             fieldName: $walkResult->fieldName,
         );
+    }
+
+    /**
+     * @return array{isMultiple: bool, isRequired: bool, enumClass: ?string, literalOptionKeys: ?list<string|int>}
+     */
+    protected function analyzeChainCall(string $methodName, MethodCall $call, Scope $scope): array
+    {
+        $enumClass = null;
+        $literalOptionKeys = null;
+
+        if ($methodName === 'enum' || $methodName === 'options') {
+            $arg = AstHelper::firstArgValue($call);
+
+            if ($arg !== null) {
+                $enumClass = $this->extractEnumClass($arg, $scope);
+                $literalOptionKeys = $this->extractLiteralOptionKeys($arg);
+            }
+        }
+
+        return [
+            'isMultiple' => $methodName === 'multiple',
+            'isRequired' => $methodName === 'required' && $this->isRequiredCall($call),
+            'enumClass' => $enumClass,
+            'literalOptionKeys' => $literalOptionKeys,
+        ];
     }
 
     /**
@@ -92,7 +113,7 @@ final class FormComponentChainResolver
 
     protected function isInherentlyMultiple(?string $componentClass): bool
     {
-        return $componentClass === 'Filament\Forms\Components\CheckboxList';
+        return $componentClass === FC::CHECKBOX_LIST;
     }
 
     /**

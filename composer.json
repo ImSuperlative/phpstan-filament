@@ -33,11 +33,11 @@
         ],
         "psr-4": {
             "ImSuperlative\\PhpstanFilament\\Tests\\": "tests/",
-            "Fixtures\\App\\": "tests/Fixtures/App/"
+            "Fixtures\\App\\": "tests/Fixtures/app/"
         },
         "exclude-from-classmap": [
-            "tests/Fixtures/App/Models/_ide_helper_models.php",
-            "tests/Fixtures/App/ClosureTests/",
+            "tests/Fixtures/app/Models/_ide_helper_models.php",
+            "tests/Fixtures/app/ClosureTests/",
             "tests/Fixtures/SmokeTest.php",
             "tests/Fixtures/SchemaCallSite.php",
             "tests/Fixtures/OperationLiteralAssertions.php"

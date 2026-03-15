@@ -1,9 +1,9 @@
 <?php
 
-use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
 use ImSuperlative\PhpstanFilament\Resolvers\StateTypeResolver;
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\ClosureInjectionRule;
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\TypedInjectionMap;
+use ImSuperlative\PhpstanFilament\Scanner\FilamentProjectIndex;
 use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use ImSuperlative\PhpstanFilament\Tests\ConfigurableRuleTestCase;
 use PHPStan\Reflection\ReflectionProvider;
@@ -24,7 +24,7 @@ function makeDisabledRule(): ClosureInjectionRule
         filamentClassHelper: $container->getByType(FilamentClassHelper::class),
         reflectionProvider: $container->getByType(ReflectionProvider::class),
         stateTypeResolver: $container->getByType(StateTypeResolver::class),
-        componentContextResolver: $container->getByType(ComponentContextResolver::class),
+        projectIndex: $container->getByType(FilamentProjectIndex::class),
     );
 }
 

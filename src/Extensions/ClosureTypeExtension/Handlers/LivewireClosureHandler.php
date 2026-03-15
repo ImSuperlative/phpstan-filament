@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\Handlers;
 
-use ImSuperlative\PhpstanFilament\Data\FilamentPageAnnotation;
 use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\ClosureHandlerContext;
 use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\ClosureParameterHandler;
-use ImSuperlative\PhpstanFilament\Resolvers\AnnotationReader;
-use ImSuperlative\PhpstanFilament\Resolvers\VirtualAnnotationProvider;
+use ImSuperlative\PhpstanFilament\Scanner\FilamentProjectIndex;
 use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
-use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
@@ -19,8 +16,7 @@ final class LivewireClosureHandler implements ClosureParameterHandler
 {
     public function __construct(
         protected readonly FilamentClassHelper $filamentClassHelper,
-        protected readonly AnnotationReader $annotationReader,
-        protected readonly VirtualAnnotationProvider $virtualAnnotationProvider,
+        protected readonly FilamentProjectIndex $projectIndex,
     ) {}
 
     public function resolveType(string $paramName, bool $hasTypeHint, ClosureHandlerContext $context, ?Type $mapType): ?Type
@@ -36,129 +32,14 @@ final class LivewireClosureHandler implements ClosureParameterHandler
 
         $schemaClass = $classReflection->getName();
 
-        // If the scope class is already a resource page or relation manager, use it directly
         if ($this->filamentClassHelper->isResourceScoped($schemaClass)) {
             return new ObjectType($schemaClass);
         }
 
-        // Priority 1: @filament-page annotation — explicit override
-        $annotationClasses = $this->resolveFromAnnotation($classReflection);
-        if ($annotationClasses !== []) {
-            return $this->buildUnionType($annotationClasses);
-        }
+        $component = $this->projectIndex->getComponent($schemaClass);
+        $pages = $component?->getPages() ?? [];
 
-        // Priority 2: Virtual annotations (auto-inferred from pre-scan)
-        $virtualClasses = $this->resolveFromVirtualAnnotations($schemaClass);
-        if ($virtualClasses !== []) {
-            return $this->buildUnionType($virtualClasses);
-        }
-
-        // Priority 3: Namespace convention inference
-        $inferredClasses = $this->resolveFromNamespaceInference($schemaClass);
-        if ($inferredClasses !== []) {
-            return $this->buildUnionType($inferredClasses);
-        }
-
-        return null;
-    }
-
-    /**
-     * @return list<string> Fully-qualified class names from @filament-page / #[FilamentPage]
-     */
-    protected function resolveFromAnnotation(ClassReflection $classReflection): array
-    {
-        $annotations = $this->annotationReader->readPageAnnotations($classReflection);
-        if ($annotations === []) {
-            return [];
-        }
-
-        $phpDoc = $classReflection->getResolvedPhpDoc();
-        $nameScope = $phpDoc?->getNullableNameScope();
-
-        return $this->extractPageClassNames($annotations, $nameScope);
-    }
-
-    /**
-     * @return list<string> Fully-qualified class names from virtual annotations
-     */
-    protected function resolveFromVirtualAnnotations(string $schemaClass): array
-    {
-        $annotations = $this->virtualAnnotationProvider->getPageAnnotations($schemaClass);
-        if ($annotations === []) {
-            return [];
-        }
-
-        return $this->expandAnnotationsToPages($annotations);
-    }
-
-    /**
-     * Extract page class names from annotations, resolving via nameScope.
-     *
-     * @param  array<FilamentPageAnnotation>  $annotations
-     * @return list<string>
-     */
-    protected function extractPageClassNames(array $annotations, ?\PHPStan\Analyser\NameScope $nameScope): array
-    {
-        $classNames = [];
-
-        foreach ($annotations as $annotation) {
-            foreach ($annotation->pageTypes() as $type) {
-                $name = (string) $type;
-                $classNames[] = $nameScope !== null
-                    ? $nameScope->resolveStringName($name)
-                    : $name;
-            }
-        }
-
-        return $classNames;
-    }
-
-    /**
-     * Expand virtual annotations to page class names.
-     * Virtual annotations have FQN types — no nameScope needed.
-     * Resource callers are expanded to their pages.
-     *
-     * @param  array<FilamentPageAnnotation>  $annotations
-     * @return list<string>
-     */
-    protected function expandAnnotationsToPages(array $annotations): array
-    {
-        $classNames = [];
-
-        foreach ($annotations as $annotation) {
-            foreach ($annotation->pageTypes() as $type) {
-                $caller = (string) $type;
-
-                // Expand Resource classes to their pages (Resource isn't a Livewire component)
-                if ($this->filamentClassHelper->isResourceClass($caller)) {
-                    foreach ($this->filamentClassHelper->resolveResourcePages($caller) as $page) {
-                        if (! in_array($page, $classNames, true)) {
-                            $classNames[] = $page;
-                        }
-                    }
-
-                    continue;
-                }
-
-                if (! in_array($caller, $classNames, true)) {
-                    $classNames[] = $caller;
-                }
-            }
-        }
-
-        return $classNames;
-    }
-
-    /**
-     * @return list<string>
-     */
-    protected function resolveFromNamespaceInference(string $schemaClass): array
-    {
-        $resourceClass = $this->filamentClassHelper->inferResourceFromNamespace($schemaClass);
-
-        return $resourceClass !== null
-            ? $this->filamentClassHelper->resolveResourcePages($resourceClass)
-            : [];
+        return $pages !== [] ? $this->buildUnionType($pages) : null;
     }
 
     /** @param list<string> $classNames */

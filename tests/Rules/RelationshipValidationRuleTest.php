@@ -1,8 +1,8 @@
 <?php
 
 use ImSuperlative\PhpstanFilament\Tests\ConfigurableRuleTestCase;
+use ImSuperlative\PhpstanFilament\Tests\Factories\RelationshipValidationRuleFactory;
 use ImSuperlative\PhpstanFilament\Tests\PhpstanTestCase;
-use ImSuperlative\PhpstanFilament\Tests\Support\RelationshipValidationRuleFactory;
 
 function getRelationshipFactory(): RelationshipValidationRuleFactory
 {

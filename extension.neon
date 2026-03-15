@@ -107,22 +107,6 @@ services:
         class: ImSuperlative\PhpstanFilament\Resolvers\AnnotationReader
 
     -
-        class: ImSuperlative\PhpstanFilament\Resolvers\ResourceModelResolver
-
-    -
-        class: ImSuperlative\PhpstanFilament\Resolvers\VirtualAnnotationProvider
-        arguments:
-            enabled: %PhpstanFilament.autoInferContext%
-            warnOnVirtual: %PhpstanFilament.checkMissingContext%
-            filamentPaths: %PhpstanFilament.filamentPaths%
-            currentWorkingDirectory: %currentWorkingDirectory%
-            analysedPaths: %analysedPaths%
-            analysedPathsFromConfig: %analysedPathsFromConfig%
-
-    -
-        class: ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver
-
-    -
         class: ImSuperlative\PhpstanFilament\Parser\FieldFluentMethodVisitor
         tags:
             - phpstan.parser.richParserNodeVisitor
@@ -187,12 +171,12 @@ services:
             macroSupport: %PhpstanFilament.typeMacroMethods%
 
     -
-        class: ImSuperlative\PhpstanFilament\Support\IdeHelperModelParser
+        class: ImSuperlative\PhpstanFilament\Support\IdeHelper\IdeHelperModelParser
         arguments:
             parser: @defaultAnalysisParser
 
     -
-        class: ImSuperlative\PhpstanFilament\Support\IdeHelperRegistry
+        class: ImSuperlative\PhpstanFilament\Support\IdeHelper\IdeHelperRegistry
         arguments:
             enabled: %PhpstanFilament.typeIdeHelper%
             customPath: %PhpstanFilament.ideHelperPath%
@@ -211,4 +195,5 @@ includes:
     - config/redundant-enum.neon
     - config/macro.neon
     - config/ide-helper.neon
+    - config/scanner.neon
     - config/missing-context.neon

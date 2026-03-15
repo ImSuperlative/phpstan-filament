@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Rules;
 
-use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
+use ImSuperlative\PhpstanFilament\Scanner\FilamentProjectIndex;
 use ImSuperlative\PhpstanFilament\Support\AstHelper;
 use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
@@ -29,7 +29,7 @@ final class RelationshipValidationRule implements Rule
         protected bool $relationship,
         protected ModelReflectionHelper $modelReflectionHelper,
         protected FilamentClassHelper $filamentClassHelper,
-        protected ComponentContextResolver $componentContextResolver,
+        protected FilamentProjectIndex $projectIndex,
     ) {}
 
     /** @return class-string<TNode> */
@@ -52,7 +52,7 @@ final class RelationshipValidationRule implements Rule
         }
 
         $relationshipName = AstHelper::firstArgValueAs($node, String_::class)?->value;
-        $modelClass = $this->componentContextResolver->resolveModelClassFromScope($scope);
+        $modelClass = $this->projectIndex->resolveModelFromScope($scope);
 
         if ($relationshipName === null || $modelClass === null) {
             return [];

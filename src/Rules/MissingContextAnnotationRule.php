@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Rules;
 
-use ImSuperlative\PhpstanFilament\Resolvers\AnnotationReader;
-use ImSuperlative\PhpstanFilament\Resolvers\VirtualAnnotationProvider;
+use ImSuperlative\PhpstanFilament\Data\FilamentTagAnnotation;
+use ImSuperlative\PhpstanFilament\Data\Scanner\ComponentAnnotations;
+use ImSuperlative\PhpstanFilament\Data\Scanner\ComponentContext;
 use ImSuperlative\PhpstanFilament\Rules\Fixers\AddFilamentPageAttributeFixer;
+use ImSuperlative\PhpstanFilament\Scanner\FilamentProjectIndex;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\ClassLike;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\InClassNode;
+use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\Rules\FixableNodeRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
@@ -24,8 +28,7 @@ final class MissingContextAnnotationRule implements Rule
 {
     public function __construct(
         protected bool $checkMissingContext,
-        protected VirtualAnnotationProvider $virtualAnnotationProvider,
-        protected AnnotationReader $annotationReader,
+        protected FilamentProjectIndex $projectIndex,
     ) {}
 
     /** @return class-string<TNode> */
@@ -46,37 +49,53 @@ final class MissingContextAnnotationRule implements Rule
         }
 
         $classReflection = $node->getClassReflection();
+        $className = $classReflection->getName();
 
-        $virtualAnnotations = $this->virtualAnnotationProvider->getPageAnnotations($classReflection->getName());
-        if ($virtualAnnotations === []) {
+        // Get inferred pages from ComponentContext
+        $componentNode = $this->projectIndex->get(ComponentContext::class)?->get($className);
+        if ($componentNode === null || $componentNode->pageModels === []) {
             return [];
         }
 
-        $explicitPageTypes = array_map(
-            fn ($annotation) => (string) $annotation->pageType(),
-            $this->annotationReader->readPageAnnotations($classReflection),
+        // Get explicit page annotations from ComponentAnnotations
+        $explicit = $this->projectIndex->get(ComponentAnnotations::class)
+            ?->get($className);
+        $explicitPageTypes = [];
+        if ($explicit !== null) {
+            foreach ($explicit->pages as $annotation) {
+                $explicitPageTypes[] = (string) $annotation->pageType();
+            }
+        }
+
+        // Find inferred pages not covered by explicit annotations
+        $missingPageModels = array_filter(
+            $componentNode->pageModels,
+            fn (?string $model, string $page) => ! in_array($page, $explicitPageTypes, true),
+            ARRAY_FILTER_USE_BOTH,
         );
 
-        $missingAnnotations = array_values(array_filter(
-            $virtualAnnotations,
-            fn ($annotation) => ! in_array((string) $annotation->pageType(), $explicitPageTypes, true),
-        ));
-
-        if ($missingAnnotations === []) {
+        if ($missingPageModels === []) {
             return [];
         }
 
-        $callerNames = array_map(
-            fn ($annotation) => (string) $annotation->pageType(),
-            $missingAnnotations,
-        );
+        // Build FilamentPageAnnotation objects for the fixer
+        $missingAnnotations = [];
+        foreach ($missingPageModels as $page => $model) {
+            $type = $model !== null
+                ? new GenericTypeNode(new IdentifierTypeNode($page), [new IdentifierTypeNode($model)])
+                : new IdentifierTypeNode($page);
+
+            $missingAnnotations[] = new FilamentTagAnnotation(type: $type)->toPageAnnotation();
+        }
+
+        $missingPages = array_keys($missingPageModels);
 
         return [
             RuleErrorBuilder::message(
                 sprintf(
                     'Class %s is missing a @filament-page annotation. Inferred from: %s.',
                     $classReflection->getDisplayName(),
-                    implode(', ', $callerNames),
+                    implode(', ', $missingPages),
                 )
             )
                 ->identifier('PhpstanFilament.missingContext')

@@ -1,25 +1,19 @@
+parameters:
+    PhpstanFilament:
+        filamentPaths:
+            - tests/Fixtures
+
 services:
     relationshipRuleFactory:
-        implement: ImSuperlative\PhpstanFilament\Tests\Support\RelationshipValidationRuleFactory
+        implement: ImSuperlative\PhpstanFilament\Tests\Factories\RelationshipValidationRuleFactory
     aggregateFieldValidatorFactory:
-        implement: ImSuperlative\PhpstanFilament\Tests\Support\AggregateFieldValidatorFactory
+        implement: ImSuperlative\PhpstanFilament\Tests\Factories\AggregateFieldValidatorFactory
     makeFieldValidationRuleFactory:
-        implement: ImSuperlative\PhpstanFilament\Tests\Support\MakeFieldValidationRuleFactory
+        implement: ImSuperlative\PhpstanFilament\Tests\Factories\MakeFieldValidationRuleFactory
     injectionMapFactoryFactory:
-        implement: ImSuperlative\PhpstanFilament\Tests\Support\InjectionMapFactoryFactory
-    virtualAnnotationProviderFactory:
-        implement: ImSuperlative\PhpstanFilament\Tests\Support\VirtualAnnotationProviderFactory
-        arguments:
-            #enabled: %filament.enabled%
-            #warnOnVirtual: %filament.warnOnVirtual%
-            #filamentPaths: %filament.filamentPaths%
-            currentWorkingDirectory: %currentWorkingDirectory%
-            #analysedPaths: %analysedPaths%
-            analysedPathsFromConfig: %analysedPathsFromConfig%
+        implement: ImSuperlative\PhpstanFilament\Tests\Factories\InjectionMapFactoryFactory
     filamentProjectScannerFactory:
-        implement: ImSuperlative\PhpstanFilament\Tests\Support\FilamentProjectScannerFactory
+        implement: ImSuperlative\PhpstanFilament\Tests\Factories\FilamentProjectScannerFactory
         arguments:
-            graphTransformers: []
-            enrichmentTransformers: []
             currentWorkingDirectory: %currentWorkingDirectory%
             analysedPathsFromConfig: %analysedPathsFromConfig%

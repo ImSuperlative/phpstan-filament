@@ -2,33 +2,20 @@
 
 use ImSuperlative\PhpstanFilament\Data\Scanner\ResourceRelations;
 use ImSuperlative\PhpstanFilament\Scanner\ProjectScanResult;
-use ImSuperlative\PhpstanFilament\Scanner\Transformers\RelationsTransformer;
+use ImSuperlative\PhpstanFilament\Scanner\Transformers\Graph\RelationsTransformer;
 use ImSuperlative\PhpstanFilament\Support\FileParser;
+use ImSuperlative\PhpstanFilament\Tests\Factories\FilamentProjectScannerFactory;
 use ImSuperlative\PhpstanFilament\Tests\PhpstanTestCase;
-use ImSuperlative\PhpstanFilament\Tests\Support\FilamentProjectScannerFactory;
 
-function getScannerForRelations(): \ImSuperlative\PhpstanFilament\Scanner\FilamentProjectScanner
+function getBaseResultForRelations(): ProjectScanResult
 {
     return PhpstanTestCase::getContainer()
         ->getByType(FilamentProjectScannerFactory::class)
         ->create(
             filamentPaths: [],
-            analysedPaths: [dirname(__DIR__, 2).'/Fixtures'],
-        );
-}
-
-function getBaseResultForRelations(): ProjectScanResult
-{
-    $scanner = getScannerForRelations();
-    $discover = new ReflectionMethod($scanner, 'discoverFilamentFiles');
-    $indexMethod = new ReflectionMethod($scanner, 'indexFileMetadata');
-    $rootsMethod = new ReflectionMethod($scanner, 'findResourceRoots');
-
-    $filePaths = $discover->invoke($scanner);
-    $index = $indexMethod->invoke($scanner, $filePaths);
-    $roots = $rootsMethod->invoke($scanner, $index);
-
-    return new ProjectScanResult(index: $index, roots: $roots);
+            analysedPaths: [tests_path('Fixtures')],
+        )
+        ->index();
 }
 
 it('parses plain class-string relations', function () {
@@ -42,9 +29,9 @@ it('parses plain class-string relations', function () {
     $relations = $enriched->get(ResourceRelations::class);
 
     expect($relations)->not->toBeNull()
-        ->and($relations->has('Fixtures\App\Resources\PostResource'))->toBeTrue()
-        ->and($relations->get('Fixtures\App\Resources\PostResource'))
-        ->toContain('Fixtures\App\Resources\PostResource\RelationManagers\CommentsRelationManager');
+        ->and($relations->has('Fixtures\App\Resources\Post\PostResource'))->toBeTrue()
+        ->and($relations->get('Fixtures\App\Resources\Post\PostResource'))
+        ->toContain('Fixtures\App\Resources\Post\RelationManagers\CommentsRelationManager');
 });
 
 it('unwraps RelationGroup::make to extract nested managers', function () {
@@ -55,13 +42,13 @@ it('unwraps RelationGroup::make to extract nested managers', function () {
     );
 
     $enriched = $transformer->transform($result);
-    $postRelations = $enriched->get(ResourceRelations::class)->get('Fixtures\App\Resources\PostResource');
+    $postRelations = $enriched->get(ResourceRelations::class)->get('Fixtures\App\Resources\Post\PostResource');
 
     // Should contain all 3: plain + 2 from RelationGroup
     expect($postRelations)
-        ->toContain('Fixtures\App\Resources\PostResource\RelationManagers\CommentsRelationManager')
-        ->toContain('Fixtures\App\Resources\PostResource\RelationManagers\TagsRelationManager')
-        ->toContain('Fixtures\App\Resources\PostResource\RelationManagers\MediaRelationManager')
+        ->toContain('Fixtures\App\Resources\Post\RelationManagers\CommentsRelationManager')
+        ->toContain('Fixtures\App\Resources\Post\RelationManagers\TagsRelationManager')
+        ->toContain('Fixtures\App\Resources\Post\RelationManagers\MediaRelationManager')
         ->toHaveCount(3);
 });
 

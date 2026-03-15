@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace ImSuperlative\PhpstanFilament\Scanner;
 
 use ImSuperlative\PhpstanFilament\Data\FileMetadata;
+use JsonSerializable;
 
-final class ProjectScanResult
+final class ProjectScanResult implements JsonSerializable
 {
     /** @var array<class-string, object> */
     protected array $attributes = [];
@@ -24,9 +25,21 @@ final class ProjectScanResult
      * @template T of object
      *
      * @param  class-string<T>  $class
+     * @return T
+     */
+    public function get(string $class): object
+    {
+        /** @var T */
+        return $this->attributes[$class];
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param  class-string<T>  $class
      * @return T|null
      */
-    public function get(string $class): ?object
+    public function find(string $class): ?object
     {
         /** @var T|null */
         return $this->attributes[$class] ?? null;
@@ -43,5 +56,21 @@ final class ProjectScanResult
         $this->attributes[$attribute::class] = $attribute;
 
         return $this;
+    }
+
+    /** @return array<string, mixed> */
+    public function jsonSerialize(): array
+    {
+        $data = [
+            'fileIndex' => $this->index,
+            'roots' => $this->roots,
+        ];
+
+        foreach ($this->attributes as $class => $attribute) {
+            $shortName = lcfirst(substr(strrchr($class, '\\') ?: $class, 1));
+            $data[$shortName] = method_exists($attribute, 'all') ? $attribute->all() : $attribute;
+        }
+
+        return $data;
     }
 }

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation;
 
+use ImSuperlative\PhpstanFilament\Data\Scanner\ComponentAnnotations;
 use ImSuperlative\PhpstanFilament\Data\SegmentTag;
 use ImSuperlative\PhpstanFilament\FieldValidationLevel;
-use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
 use ImSuperlative\PhpstanFilament\Resolvers\FieldPathResolver;
-use ImSuperlative\PhpstanFilament\Resolvers\PhpDocAnnotationParser;
+use ImSuperlative\PhpstanFilament\Scanner\FilamentProjectIndex;
 use ImSuperlative\PhpstanFilament\Support\AstHelper;
 use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
-use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Support\FilamentComponent as FC;
 use PhpParser\Node;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
@@ -31,10 +31,8 @@ class MakeFieldValidationRule implements Rule
 
     public function __construct(
         protected FieldValidationLevel $level,
-        protected ModelReflectionHelper $modelReflectionHelper,
         protected FilamentClassHelper $filamentClassHelper,
-        protected ComponentContextResolver $componentContextResolver,
-        protected PhpDocAnnotationParser $phpDocParser,
+        protected FilamentProjectIndex $projectIndex,
         protected FieldPathResolver $fieldPathResolver,
         protected AggregateFieldValidator $aggregateFieldValidator,
     ) {}
@@ -61,9 +59,17 @@ class MakeFieldValidationRule implements Rule
             return [];
         }
 
-        $modelClass = $this->componentContextResolver->resolveModelClassFromScope($scope);
+        $target = $scope->getClassReflection()?->getName();
+        $component = $this->projectIndex->findComponent($target);
+        $modelClass = $component?->getModel();
         if ($modelClass === null) {
             return [];
+        }
+
+        // ManageRelatedRecords: resolve the relationship's target model
+        $modelClassResolve = $component->getModelForResource($target);
+        if ($modelClassResolve !== null) {
+            $modelClass = $modelClassResolve;
         }
 
         if ($this->isScopeSkipped($node) || $this->isVirtualField($node)) {
@@ -233,7 +239,7 @@ class MakeFieldValidationRule implements Rule
 
         foreach ($segments as $segment) {
             if (isset($fieldOverrides[$segment])) {
-                if ($fieldOverrides[$segment] === ModelReflectionHelper::MODEL_BASE) {
+                if ($fieldOverrides[$segment] === FC::MODEL) {
                     return [];
                 }
                 $currentClass = $fieldOverrides[$segment];
@@ -321,24 +327,29 @@ class MakeFieldValidationRule implements Rule
     }
 
     /**
-     * Resolve @filament-field annotation overrides from the current class.
+     * Resolve @filament-field annotation overrides from the index.
      *
      * @return array<string, string> fieldName => resolvedType
      */
     protected function resolveFieldOverrides(Scope $scope): array
     {
-        $classReflection = $scope->getClassReflection();
-        if ($classReflection === null) {
+        $className = $scope->getClassReflection()?->getName();
+        if ($className === null) {
             return [];
         }
 
-        $phpDoc = $classReflection->getResolvedPhpDoc();
-        if ($phpDoc === null) {
+        $annotations = $this->projectIndex
+            ->get(ComponentAnnotations::class)
+            ?->get($className)
+            ?->fields ?? [];
+
+        if ($annotations === []) {
             return [];
         }
 
-        $annotations = $this->phpDocParser->readFieldAnnotations($phpDoc->getPhpDocString());
-        $nameScope = $phpDoc->getNullableNameScope();
+        $nameScope = $scope->getClassReflection()
+            ?->getResolvedPhpDoc()
+            ?->getNullableNameScope();
 
         $overrides = [];
         foreach ($annotations as $annotation) {
@@ -347,10 +358,9 @@ class MakeFieldValidationRule implements Rule
             }
 
             $type = $annotation->typeAsString();
-            $resolvedType = $nameScope !== null
+            $overrides[$annotation->fieldName] = $nameScope !== null
                 ? $nameScope->resolveStringName($type)
                 : $type;
-            $overrides[$annotation->fieldName] = $resolvedType;
         }
 
         return $overrides;

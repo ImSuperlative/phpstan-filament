@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Rules\MakeFieldValidation;
 
+use ImSuperlative\PhpstanFilament\Data\SegmentTag;
 use ImSuperlative\PhpstanFilament\FieldValidationLevel;
-use ImSuperlative\PhpstanFilament\Support\ModelReflectionHelper;
+use ImSuperlative\PhpstanFilament\Resolvers\FieldPathResolver;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\RuleError;
 use PHPStan\Rules\RuleErrorBuilder;
@@ -26,7 +27,7 @@ class AggregateFieldValidator
 
     public function __construct(
         protected FieldValidationLevel $level,
-        protected ModelReflectionHelper $modelReflectionHelper,
+        protected FieldPathResolver $fieldPathResolver,
     ) {}
 
     /**
@@ -83,10 +84,10 @@ class AggregateFieldValidator
      */
     protected function validateRelation(string $relationPart, string $fieldName, string $modelClass, Scope $scope): array
     {
-        $result = $this->modelReflectionHelper->isRelationship($modelClass, $relationPart, $scope);
+        $result = $this->fieldPathResolver->resolve($relationPart, $modelClass, $scope);
+        $segment = $result->segments[0] ?? null;
 
-        // Aggregate format is specific — relation must exist at any level
-        if ($result === true) {
+        if ($segment?->is(SegmentTag::Relation)) {
             return [];
         }
 
@@ -111,12 +112,19 @@ class AggregateFieldValidator
      */
     protected function validateColumn(string $relationPart, ?string $columnPart, string $fieldName, string $modelClass, Scope $scope): array
     {
-        if (! $this->level->shouldValidateAggregateColumn() || $columnPart === null) {
+        if ($columnPart === null || ! $this->level->shouldValidateAggregateColumn()) {
             return [];
         }
 
-        $relatedModel = $this->modelReflectionHelper->resolveRelatedModel($modelClass, $relationPart, $scope);
-        if ($relatedModel === null || $this->modelReflectionHelper->hasProperty($relatedModel, $columnPart)) {
+        $result = $this->fieldPathResolver->resolve($relationPart.'.'.$columnPart, $modelClass, $scope);
+        $relatedModel = $result->segments[0]?->resolvedClass;
+
+        if ($relatedModel === null) {
+            return [];
+        }
+
+        $leaf = $result->segments[1] ?? null;
+        if ($leaf?->is(SegmentTag::Property)) {
             return [];
         }
 

@@ -1,0 +1,56 @@
+# Scanner infrastructure
+# FilamentProjectScanner discovers Filament components and builds a project index
+# Transformers enrich the scanned graph with pages, relations, models, and virtual annotations
+
+services:
+    -
+        class: ImSuperlative\PhpstanFilament\Scanner\Transformers\Graph\PagesTransformer
+        tags:
+            - phpstan.filament.graphTransformer
+
+    -
+        class: ImSuperlative\PhpstanFilament\Scanner\Transformers\Graph\RelationsTransformer
+        tags:
+            - phpstan.filament.graphTransformer
+
+    -
+        class: ImSuperlative\PhpstanFilament\Scanner\Transformers\Graph\ModelTransformer
+        tags:
+            - phpstan.filament.graphTransformer
+
+    -
+        class: ImSuperlative\PhpstanFilament\Scanner\Indexing\PropertyReader
+
+    -
+        class: ImSuperlative\PhpstanFilament\Scanner\Indexing\ProjectIndexer
+        arguments:
+            filamentPaths: %PhpstanFilament.filamentPaths%
+            currentWorkingDirectory: %currentWorkingDirectory%
+            analysedPaths: %analysedPaths%
+            analysedPathsFromConfig: %analysedPathsFromConfig%
+
+    -
+        class: ImSuperlative\PhpstanFilament\Scanner\Indexing\ComponentDiscovery
+        arguments:
+            graphTransformers: tagged(phpstan.filament.graphTransformer)
+
+    -
+        class: ImSuperlative\PhpstanFilament\Scanner\Transformers\Enrichment\AnnotationTransformer
+        arguments:
+            annotationReader: @ImSuperlative\PhpstanFilament\Resolvers\AnnotationReader
+        tags:
+            - phpstan.filament.enrichmentTransformer
+
+    -
+        class: ImSuperlative\PhpstanFilament\Scanner\Transformers\Enrichment\ComponentContextTransformer
+        tags:
+            - phpstan.filament.enrichmentTransformer
+
+    -
+        class: ImSuperlative\PhpstanFilament\Scanner\FilamentProjectScanner
+        arguments:
+            graphTransformers: tagged(phpstan.filament.graphTransformer)
+            enrichmentTransformers: tagged(phpstan.filament.enrichmentTransformer)
+
+    -
+        class: ImSuperlative\PhpstanFilament\Scanner\FilamentProjectIndex

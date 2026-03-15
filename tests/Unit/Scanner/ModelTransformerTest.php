@@ -1,12 +1,15 @@
 <?php
 
+/** @noinspection ClassConstantCanBeUsedInspection */
+
 use ImSuperlative\PhpstanFilament\Data\Scanner\ResourceModels;
+use ImSuperlative\PhpstanFilament\Data\Scanner\ResourcePages;
+use ImSuperlative\PhpstanFilament\Data\Scanner\ResourceRelations;
 use ImSuperlative\PhpstanFilament\Scanner\ProjectScanResult;
-use ImSuperlative\PhpstanFilament\Scanner\Transformers\ModelTransformer;
-use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
+use ImSuperlative\PhpstanFilament\Scanner\Transformers\Graph\ModelTransformer;
 use ImSuperlative\PhpstanFilament\Support\FileParser;
+use ImSuperlative\PhpstanFilament\Tests\Factories\FilamentProjectScannerFactory;
 use ImSuperlative\PhpstanFilament\Tests\PhpstanTestCase;
-use ImSuperlative\PhpstanFilament\Tests\Support\FilamentProjectScannerFactory;
 use PHPStan\Reflection\ReflectionProvider;
 
 function getModelTransformer(): ModelTransformer
@@ -16,28 +19,18 @@ function getModelTransformer(): ModelTransformer
     return new ModelTransformer(
         $container->getByType(ReflectionProvider::class),
         $container->getByType(FileParser::class),
-        $container->getByType(FilamentClassHelper::class),
     );
 }
 
 function getBaseResultForModels(): ProjectScanResult
 {
-    $scanner = PhpstanTestCase::getContainer()
+    return PhpstanTestCase::getContainer()
         ->getByType(FilamentProjectScannerFactory::class)
         ->create(
             filamentPaths: [],
-            analysedPaths: [dirname(__DIR__, 2).'/Fixtures'],
-        );
-
-    $discover = new ReflectionMethod($scanner, 'discoverFilamentFiles');
-    $indexMethod = new ReflectionMethod($scanner, 'indexFileMetadata');
-    $rootsMethod = new ReflectionMethod($scanner, 'findResourceRoots');
-
-    $filePaths = $discover->invoke($scanner);
-    $index = $indexMethod->invoke($scanner, $filePaths);
-    $roots = $rootsMethod->invoke($scanner, $index);
-
-    return new ProjectScanResult(index: $index, roots: $roots);
+            analysedPaths: [tests_path('Fixtures')],
+        )
+        ->index();
 }
 
 it('resolves model from static property on PostResource', function () {
@@ -46,8 +39,8 @@ it('resolves model from static property on PostResource', function () {
     $models = $enriched->get(ResourceModels::class);
 
     expect($models)->not->toBeNull()
-        ->and($models->has('Fixtures\App\Resources\PostResource'))->toBeTrue()
-        ->and($models->get('Fixtures\App\Resources\PostResource'))
+        ->and($models->has('Fixtures\App\Resources\Post\PostResource'))->toBeTrue()
+        ->and($models->get('Fixtures\App\Resources\Post\PostResource'))
         ->toBe('Fixtures\App\Models\Post');
 });
 
@@ -57,8 +50,8 @@ it('resolves model from static property on CommentResource', function () {
     $models = $enriched->get(ResourceModels::class);
 
     expect($models)->not->toBeNull()
-        ->and($models->has('Fixtures\App\Resources\CommentResource'))->toBeTrue()
-        ->and($models->get('Fixtures\App\Resources\CommentResource'))
+        ->and($models->has('Fixtures\App\Resources\Comment\CommentResource'))->toBeTrue()
+        ->and($models->get('Fixtures\App\Resources\Comment\CommentResource'))
         ->toBe('Fixtures\App\Models\Comment');
 });
 
@@ -103,4 +96,55 @@ it('does not resolve model from property when getModel is declared (ResourceWith
     // and property fallback is skipped because getModel is declared — so no model resolved
     $fqcn = 'ImSuperlative\PhpstanFilament\Tests\Fixtures\Stubs\ResourceWithLiteralGetModelAndProperty';
     expect($models->has($fqcn))->toBeFalse();
+});
+
+it('resolves model for resource pages via ResourcePages', function () {
+    $result = getBaseResultForModels();
+    $result->set(new ResourcePages([
+        'Fixtures\App\Resources\Post\PostResource' => [
+            'index' => 'Fixtures\App\Resources\Post\Pages\ListPosts',
+            'edit' => 'Fixtures\App\Resources\Post\Pages\EditPost',
+        ],
+    ]));
+    $result->set(new ResourceRelations([]));
+
+    $enriched = getModelTransformer()->transform($result);
+    $models = $enriched->get(ResourceModels::class);
+
+    expect($models->get('Fixtures\App\Resources\Post\Pages\ListPosts'))
+        ->toBe('Fixtures\App\Models\Post')
+        ->and($models->get('Fixtures\App\Resources\Post\Pages\EditPost'))
+        ->toBe('Fixtures\App\Models\Post');
+});
+
+it('resolves related model for relation managers via ResourceRelations', function () {
+    $result = getBaseResultForModels();
+    $result->set(new ResourcePages([]));
+    $result->set(new ResourceRelations([
+        'Fixtures\App\Resources\Post\PostResource' => [
+            'Fixtures\App\Resources\Post\RelationManagers\CommentsRelationManager',
+        ],
+    ]));
+
+    $enriched = getModelTransformer()->transform($result);
+    $models = $enriched->get(ResourceModels::class);
+
+    expect($models->get('Fixtures\App\Resources\Post\RelationManagers\CommentsRelationManager'))
+        ->toBe('Fixtures\App\Models\Comment');
+});
+
+it('falls back to parent model when relationship cannot be resolved', function () {
+    $result = getBaseResultForModels();
+    $result->set(new ResourcePages([]));
+    $result->set(new ResourceRelations([
+        'Fixtures\App\Resources\Post\PostResource' => [
+            'Fixtures\App\Resources\Post\RelationManagers\MediaRelationManager',
+        ],
+    ]));
+
+    $enriched = getModelTransformer()->transform($result);
+    $models = $enriched->get(ResourceModels::class);
+
+    expect($models->get('Fixtures\App\Resources\Post\RelationManagers\MediaRelationManager'))
+        ->toBe('Fixtures\App\Models\Post');
 });

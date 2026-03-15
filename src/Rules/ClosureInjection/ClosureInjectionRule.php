@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Rules\ClosureInjection;
 
-use ImSuperlative\PhpstanFilament\Resolvers\ComponentContextResolver;
 use ImSuperlative\PhpstanFilament\Resolvers\StateTypeResolver;
+use ImSuperlative\PhpstanFilament\Scanner\FilamentProjectIndex;
 use ImSuperlative\PhpstanFilament\Support\FilamentClassHelper;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
@@ -63,7 +63,7 @@ final class ClosureInjectionRule implements Rule
         protected FilamentClassHelper $filamentClassHelper,
         protected ReflectionProvider $reflectionProvider,
         protected StateTypeResolver $stateTypeResolver,
-        protected ComponentContextResolver $componentContextResolver,
+        protected FilamentProjectIndex $projectIndex,
     ) {}
 
     /** @return class-string<TNode> */
@@ -285,7 +285,7 @@ final class ClosureInjectionRule implements Rule
 
     protected function resolveModelClass(Scope $scope): ?string
     {
-        return $this->componentContextResolver->resolveModelClassFromScope($scope);
+        return $this->projectIndex->resolveModelFromScope($scope);
     }
 
     /**

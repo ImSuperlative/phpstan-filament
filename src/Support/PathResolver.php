@@ -108,6 +108,23 @@ final class PathResolver
 
     protected static function toAbsolute(string $path, string $cwd): string
     {
-        return $cwd.'/'.ltrim($path, '/');
+        if (str_starts_with($path, '/')) {
+            return $path;
+        }
+
+        $resolved = $cwd.'/'.$path;
+
+        if (is_dir($resolved) || is_file($resolved)) {
+            return $resolved;
+        }
+
+        $fallback = getcwd();
+        if ($fallback === false) {
+            return $resolved;
+        }
+
+        $cwdResolved = $fallback.'/'.$path;
+
+        return (is_dir($cwdResolved) || is_file($cwdResolved)) ? $cwdResolved : $resolved;
     }
 }

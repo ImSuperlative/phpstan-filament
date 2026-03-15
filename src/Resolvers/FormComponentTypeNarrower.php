@@ -1,13 +1,12 @@
 <?php
 
-/** @noinspection ClassConstantCanBeUsedInspection */
-
 declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Resolvers;
 
 use ImSuperlative\PhpstanFilament\Data\ChainAnalysis;
 use ImSuperlative\PhpstanFilament\Data\StateNarrowingRule;
+use ImSuperlative\PhpstanFilament\Support\FilamentComponent as FC;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\FloatType;
@@ -27,12 +26,12 @@ final class FormComponentTypeNarrower
     protected function rules(): array
     {
         return [
-            new StateNarrowingRule('Filament\Forms\Components\TextInput', 'numeric', TypeCombinator::addNull(new FloatType)),
-            new StateNarrowingRule('Filament\Forms\Components\TextInput', 'integer', TypeCombinator::addNull(new FloatType)),
-            new StateNarrowingRule('Filament\Forms\Components\Select', 'multiple', new ArrayType(new IntegerType, TypeCombinator::union(new StringType, new IntegerType))),
-            new StateNarrowingRule('Filament\Forms\Components\FileUpload', 'multiple', TypeCombinator::addNull(new ArrayType(new IntegerType, new StringType))),
-            new StateNarrowingRule('Filament\Forms\Components\Radio', 'boolean', TypeCombinator::addNull(new IntegerType)),
-            new StateNarrowingRule('Filament\Forms\Components\ToggleButtons', 'multiple', new ArrayType(new IntegerType, TypeCombinator::union(new StringType, new IntegerType))),
+            new StateNarrowingRule(FC::TEXT_INPUT, 'numeric', TypeCombinator::addNull(new FloatType)),
+            new StateNarrowingRule(FC::TEXT_INPUT, 'integer', TypeCombinator::addNull(new FloatType)),
+            new StateNarrowingRule(FC::SELECT, 'multiple', new ArrayType(new IntegerType, TypeCombinator::union(new StringType, new IntegerType))),
+            new StateNarrowingRule(FC::FILE_UPLOAD, 'multiple', TypeCombinator::addNull(new ArrayType(new IntegerType, new StringType))),
+            new StateNarrowingRule(FC::RADIO, 'boolean', TypeCombinator::addNull(new IntegerType)),
+            new StateNarrowingRule(FC::TOGGLE_BUTTONS, 'multiple', new ArrayType(new IntegerType, TypeCombinator::union(new StringType, new IntegerType))),
         ];
     }
 

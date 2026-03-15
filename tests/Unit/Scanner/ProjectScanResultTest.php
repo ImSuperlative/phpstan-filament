@@ -22,7 +22,7 @@ it('stores and retrieves attributes via set/get/has', function () {
     $data->value = 'test';
 
     expect($result->has(stdClass::class))->toBeFalse()
-        ->and($result->get(stdClass::class))->toBeNull();
+        ->and($result->find(stdClass::class))->toBeNull();
 
     $same = $result->set($data);
 
@@ -53,6 +53,6 @@ it('stores scanner data classes in attribute bag', function () {
 it('returns null for unset attributes', function () {
     $result = new ProjectScanResult(index: [], roots: []);
 
-    expect($result->get(ResourcePages::class))->toBeNull()
+    expect($result->find(ResourcePages::class))->toBeNull()
         ->and($result->has(ResourcePages::class))->toBeFalse();
 });

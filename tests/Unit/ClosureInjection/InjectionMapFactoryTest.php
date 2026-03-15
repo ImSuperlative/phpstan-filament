@@ -4,8 +4,8 @@
 
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\InjectionParameter;
 use ImSuperlative\PhpstanFilament\Rules\ClosureInjection\TypedInjectionMap;
+use ImSuperlative\PhpstanFilament\Tests\Factories\InjectionMapFactoryFactory;
 use ImSuperlative\PhpstanFilament\Tests\PhpstanTestCase;
-use ImSuperlative\PhpstanFilament\Tests\Support\InjectionMapFactoryFactory;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\VerbosityLevel;
 

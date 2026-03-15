@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Extensions;
 
-use ImSuperlative\PhpstanFilament\Resolvers\ResourceModelResolver;
+use ImSuperlative\PhpstanFilament\Scanner\FilamentProjectIndex;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\MethodReflection;
@@ -21,7 +21,7 @@ final class OwnerRecordReturnTypeExtension implements DynamicMethodReturnTypeExt
     public function __construct(
         protected readonly string $className,
         protected readonly bool $enabled,
-        protected readonly ResourceModelResolver $resourceModelResolver,
+        protected readonly FilamentProjectIndex $projectIndex,
     ) {}
 
     public function getClass(): string
@@ -55,7 +55,7 @@ final class OwnerRecordReturnTypeExtension implements DynamicMethodReturnTypeExt
         $modelTypes = [];
 
         foreach ($classNames as $className) {
-            $modelClass = $this->resourceModelResolver->resolveResourceModel($className);
+            $modelClass = $this->resolveOwnerModel($className);
 
             if ($modelClass !== null) {
                 $modelTypes[] = new ObjectType($modelClass);
@@ -72,15 +72,19 @@ final class OwnerRecordReturnTypeExtension implements DynamicMethodReturnTypeExt
     protected function resolveFromScopeClass(Scope $scope): ?Type
     {
         $classReflection = $scope->getClassReflection();
-
         if ($classReflection === null) {
             return null;
         }
 
-        $modelClass = $this->resourceModelResolver->resolve($classReflection->getName());
+        $modelClass = $this->resolveOwnerModel($classReflection->getName());
 
         return $modelClass !== null
             ? TypeCombinator::addNull(new ObjectType($modelClass))
             : null;
+    }
+
+    protected function resolveOwnerModel(string $className): ?string
+    {
+        return $this->projectIndex->getComponent($className)?->getOwnerModel();
     }
 }

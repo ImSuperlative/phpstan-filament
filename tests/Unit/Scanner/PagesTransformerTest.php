@@ -1,35 +1,21 @@
 <?php
 
 use ImSuperlative\PhpstanFilament\Data\Scanner\ResourcePages;
-use ImSuperlative\PhpstanFilament\Scanner\FilamentProjectScanner;
 use ImSuperlative\PhpstanFilament\Scanner\ProjectScanResult;
-use ImSuperlative\PhpstanFilament\Scanner\Transformers\PagesTransformer;
+use ImSuperlative\PhpstanFilament\Scanner\Transformers\Graph\PagesTransformer;
 use ImSuperlative\PhpstanFilament\Support\FileParser;
+use ImSuperlative\PhpstanFilament\Tests\Factories\FilamentProjectScannerFactory;
 use ImSuperlative\PhpstanFilament\Tests\PhpstanTestCase;
-use ImSuperlative\PhpstanFilament\Tests\Support\FilamentProjectScannerFactory;
 
-function getScannerForPages(): FilamentProjectScanner
+function getBaseResult(): ProjectScanResult
 {
     return PhpstanTestCase::getContainer()
         ->getByType(FilamentProjectScannerFactory::class)
         ->create(
             filamentPaths: [],
-            analysedPaths: [dirname(__DIR__, 2).'/Fixtures'],
-        );
-}
-
-function getBaseResult(): ProjectScanResult
-{
-    $scanner = getScannerForPages();
-    $discover = new ReflectionMethod($scanner, 'discoverFilamentFiles');
-    $indexMethod = new ReflectionMethod($scanner, 'indexFileMetadata');
-    $rootsMethod = new ReflectionMethod($scanner, 'findResourceRoots');
-
-    $filePaths = $discover->invoke($scanner);
-    $index = $indexMethod->invoke($scanner, $filePaths);
-    $roots = $rootsMethod->invoke($scanner, $index);
-
-    return new ProjectScanResult(index: $index, roots: $roots);
+            analysedPaths: [tests_path('Fixtures')],
+        )
+        ->index();
 }
 
 it('parses getPages from PostResource', function () {
@@ -43,15 +29,15 @@ it('parses getPages from PostResource', function () {
     $pages = $enriched->get(ResourcePages::class);
 
     expect($pages)->not->toBeNull()
-        ->and($pages->has('Fixtures\App\Resources\PostResource'))->toBeTrue()
-        ->and($pages->get('Fixtures\App\Resources\PostResource'))
+        ->and($pages->has('Fixtures\App\Resources\Post\PostResource'))->toBeTrue()
+        ->and($pages->get('Fixtures\App\Resources\Post\PostResource'))
         ->toHaveKey('index')
         ->toHaveKey('create')
         ->toHaveKey('edit')
         ->toHaveKey('view');
 
-    expect($pages->get('Fixtures\App\Resources\PostResource')['index'])
-        ->toBe('Fixtures\App\Resources\PostResource\Pages\ListPosts');
+    expect($pages->get('Fixtures\App\Resources\Post\PostResource')['index'])
+        ->toBe('Fixtures\App\Resources\Post\Pages\ListPosts');
 });
 
 it('parses getPages from CommentResource', function () {
@@ -65,8 +51,8 @@ it('parses getPages from CommentResource', function () {
     $pages = $enriched->get(ResourcePages::class);
 
     expect($pages)->not->toBeNull()
-        ->and($pages->has('Fixtures\App\Resources\CommentResource'))->toBeTrue()
-        ->and($pages->get('Fixtures\App\Resources\CommentResource'))
+        ->and($pages->has('Fixtures\App\Resources\Comment\CommentResource'))->toBeTrue()
+        ->and($pages->get('Fixtures\App\Resources\Comment\CommentResource'))
         ->toHaveKey('edit');
 });
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ImSuperlative\PhpstanFilament\Parser;
 
 use ImSuperlative\PhpstanFilament\Support\AstHelper;
+use ImSuperlative\PhpstanFilament\Support\FilamentComponent as FC;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
@@ -23,7 +24,7 @@ final class FieldFluentMethodVisitor extends NodeVisitorAbstract
     protected const array COLUMN_METHODS = ['avg', 'max', 'min', 'sum'];
 
     protected const array INFOLIST_ENTRY_PREFIXES = [
-        'Filament\\Infolists\\Components\\',
+        FC::INFOLIST_COMPONENTS_NS,
     ];
 
     /**

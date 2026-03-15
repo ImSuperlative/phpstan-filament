@@ -6,6 +6,7 @@ namespace ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\Handlers
 
 use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\ClosureHandlerContext;
 use ImSuperlative\PhpstanFilament\Extensions\ClosureTypeExtension\ClosureParameterHandler;
+use ImSuperlative\PhpstanFilament\Support\FilamentComponent as FC;
 use PHPStan\Type\Generic\GenericObjectType;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\ObjectType;
@@ -27,7 +28,7 @@ final class ActionRecordsHandler implements ClosureParameterHandler
         return TypeCombinator::union(
             ...array_map(
                 fn (string $class) => new GenericObjectType(
-                    'Illuminate\Database\Eloquent\Collection',
+                    FC::ELOQUENT_COLLECTION,
                     [
                         new IntegerType,
                         new ObjectType($class),

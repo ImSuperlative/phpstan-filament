@@ -1,12 +1,11 @@
 <?php
 
-/** @noinspection ClassConstantCanBeUsedInspection */
-
 declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Parser;
 
 use ImSuperlative\PhpstanFilament\Support\AstHelper;
+use ImSuperlative\PhpstanFilament\Support\FilamentComponent as FC;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
@@ -20,26 +19,26 @@ final class StatePathPrefixVisitor extends NodeVisitorAbstract
      * Namespace prefixes for Filament field components (Entry, Field, Column).
      */
     protected const array FIELD_COMPONENT_PREFIXES = [
-        'Filament\\Infolists\\Components\\',
-        'Filament\\Forms\\Components\\',
-        'Filament\\Tables\\Columns\\',
+        FC::INFOLIST_COMPONENTS_NS,
+        FC::FORM_COMPONENTS_NS,
+        FC::TABLE_COLUMNS_NS,
     ];
 
     /**
      * Layout component classes whose make() name is a label, not a state path.
      */
     protected const array LAYOUT_CLASSES = [
-        'Filament\\Infolists\\Components\\Section',
-        'Filament\\Infolists\\Components\\Group',
-        'Filament\\Infolists\\Components\\Split',
-        'Filament\\Infolists\\Components\\Tabs',
-        'Filament\\Forms\\Components\\Section',
-        'Filament\\Forms\\Components\\Group',
-        'Filament\\Forms\\Components\\Fieldset',
-        'Filament\\Forms\\Components\\Tabs',
-        'Filament\\Forms\\Components\\Wizard',
-        'Filament\\Schemas\\Components\\Section',
-        'Filament\\Schemas\\Components\\Group',
+        FC::INFOLIST_SECTION,
+        FC::INFOLIST_GROUP,
+        FC::INFOLIST_SPLIT,
+        FC::INFOLIST_TABS,
+        FC::FORM_SECTION,
+        FC::FORM_GROUP,
+        FC::FORM_FIELDSET,
+        FC::FORM_TABS,
+        FC::FORM_WIZARD,
+        FC::SCHEMA_SECTION,
+        FC::SCHEMA_GROUP,
     ];
 
     /**

@@ -29,4 +29,36 @@ trait HasTypedMap
     {
         return $this->data;
     }
+
+    /**
+     * Get a value by key and wrap it into a provider object.
+     *
+     * @template TProvider
+     *
+     * @param  class-string<TProvider>  $providerClass
+     * @return TProvider|null
+     */
+    public function into(string $key, string $providerClass): mixed
+    {
+        $value = $this->get($key);
+
+        return $value !== null ? new $providerClass($value) : null;
+    }
+
+    /**
+     * Wrap all values into provider objects.
+     *
+     * @template TProvider
+     *
+     * @param  class-string<TProvider>  $providerClass
+     * @return array<TKey, TProvider>
+     */
+    public function mapInto(string $providerClass): array
+    {
+        return array_map(
+            fn ($value) => new $providerClass($value),
+            $this->data,
+        );
+    }
+
 }

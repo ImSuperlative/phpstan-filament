@@ -8,12 +8,10 @@ use ImSuperlative\PhpstanFilament\Data\ChainWalkResult;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ArrowFunction;
-use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\Closure;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
-use PhpParser\Node\Name;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Return_;
 use PHPStan\Analyser\Scope;
@@ -108,20 +106,29 @@ final class AstHelper
     /**
      * Walk a method chain from the outermost call inward.
      * Calls $visitor for each MethodCall with an Identifier name.
-     * Returns collected method names and the ::make('name') field name if the root is a static make call.
+     * Returns collected method names, non-null visitor results, and the ::make('name') field name if the root is a static make call.
      *
-     * @param  callable(string $methodName, MethodCall $call): void  $visitor
+     * @template T
+     *
+     * @param  callable(string $methodName, MethodCall $call): ?T  $visitor
+     * @return ChainWalkResult<T>
      */
     public static function walkMethodChain(Expr $expr, callable $visitor): ChainWalkResult
     {
         $methodNames = [];
+        $visitorResults = [];
         $current = $expr;
 
         while ($current instanceof MethodCall) {
             if ($current->name instanceof Identifier) {
                 $methodName = $current->name->toString();
                 $methodNames[] = $methodName;
-                $visitor($methodName, $current);
+
+                $result = $visitor($methodName, $current);
+
+                if ($result !== null) {
+                    $visitorResults[] = $result;
+                }
             }
 
             $current = $current->var;
@@ -130,6 +137,7 @@ final class AstHelper
         return new ChainWalkResult(
             methodNames: $methodNames,
             fieldName: self::extractMakeName($current),
+            visitorResults: $visitorResults,
         );
     }
 

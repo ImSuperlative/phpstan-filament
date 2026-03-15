@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Extensions\IdeHelper;
 
-use ImSuperlative\PhpstanFilament\Support\IdeHelperRegistry;
+use ImSuperlative\PhpstanFilament\Support\IdeHelper\IdeHelperRegistry;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\PropertiesClassReflectionExtension;
 use PHPStan\Reflection\PropertyReflection;

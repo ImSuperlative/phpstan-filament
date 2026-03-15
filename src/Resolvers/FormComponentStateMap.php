@@ -1,11 +1,10 @@
 <?php
 
-/** @noinspection ClassConstantCanBeUsedInspection */
-
 declare(strict_types=1);
 
 namespace ImSuperlative\PhpstanFilament\Resolvers;
 
+use ImSuperlative\PhpstanFilament\Support\FilamentComponent as FC;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\BooleanType;
@@ -28,26 +27,26 @@ final class FormComponentStateMap
     protected static function map(): array
     {
         return self::$map ??= [
-            'Filament\Forms\Components\TextInput' => TypeCombinator::addNull(new StringType),
-            'Filament\Forms\Components\Textarea' => TypeCombinator::addNull(new StringType),
-            'Filament\Forms\Components\RichEditor' => TypeCombinator::addNull(new StringType),
-            'Filament\Forms\Components\MarkdownEditor' => TypeCombinator::addNull(new StringType),
-            'Filament\Forms\Components\Select' => TypeCombinator::addNull(TypeCombinator::union(new StringType, new IntegerType)),
-            'Filament\Forms\Components\Toggle' => TypeCombinator::addNull(new BooleanType),
-            'Filament\Forms\Components\Checkbox' => TypeCombinator::addNull(new BooleanType),
-            'Filament\Forms\Components\CheckboxList' => new ArrayType(new IntegerType, TypeCombinator::union(new StringType, new IntegerType)),
-            'Filament\Forms\Components\Radio' => TypeCombinator::addNull(TypeCombinator::union(new StringType, new IntegerType)),
-            'Filament\Forms\Components\ToggleButtons' => TypeCombinator::addNull(TypeCombinator::union(new StringType, new IntegerType)),
-            'Filament\Forms\Components\DatePicker' => TypeCombinator::addNull(new StringType),
-            'Filament\Forms\Components\DateTimePicker' => TypeCombinator::addNull(new StringType),
-            'Filament\Forms\Components\TimePicker' => TypeCombinator::addNull(new StringType),
-            'Filament\Forms\Components\ColorPicker' => TypeCombinator::addNull(new StringType),
-            'Filament\Forms\Components\FileUpload' => TypeCombinator::addNull(new StringType),
-            'Filament\Forms\Components\KeyValue' => TypeCombinator::addNull(new ArrayType(new StringType, new StringType)),
-            'Filament\Forms\Components\Repeater' => TypeCombinator::addNull(new ArrayType(new MixedType, new MixedType)),
-            'Filament\Forms\Components\Builder' => TypeCombinator::addNull(new ArrayType(new MixedType, new MixedType)),
-            'Filament\Forms\Components\TagsInput' => TypeCombinator::addNull(new ArrayType(new IntegerType, new StringType)),
-            'Filament\Forms\Components\Hidden' => new MixedType,
+            FC::TEXT_INPUT => TypeCombinator::addNull(new StringType),
+            FC::TEXTAREA => TypeCombinator::addNull(new StringType),
+            FC::RICH_EDITOR => TypeCombinator::addNull(new StringType),
+            FC::MARKDOWN_EDITOR => TypeCombinator::addNull(new StringType),
+            FC::SELECT => TypeCombinator::addNull(TypeCombinator::union(new StringType, new IntegerType)),
+            FC::TOGGLE => TypeCombinator::addNull(new BooleanType),
+            FC::CHECKBOX => TypeCombinator::addNull(new BooleanType),
+            FC::CHECKBOX_LIST => new ArrayType(new IntegerType, TypeCombinator::union(new StringType, new IntegerType)),
+            FC::RADIO => TypeCombinator::addNull(TypeCombinator::union(new StringType, new IntegerType)),
+            FC::TOGGLE_BUTTONS => TypeCombinator::addNull(TypeCombinator::union(new StringType, new IntegerType)),
+            FC::DATE_PICKER => TypeCombinator::addNull(new StringType),
+            FC::DATE_TIME_PICKER => TypeCombinator::addNull(new StringType),
+            FC::TIME_PICKER => TypeCombinator::addNull(new StringType),
+            FC::COLOR_PICKER => TypeCombinator::addNull(new StringType),
+            FC::FILE_UPLOAD => TypeCombinator::addNull(new StringType),
+            FC::KEY_VALUE => TypeCombinator::addNull(new ArrayType(new StringType, new StringType)),
+            FC::REPEATER => TypeCombinator::addNull(new ArrayType(new MixedType, new MixedType)),
+            FC::BUILDER => TypeCombinator::addNull(new ArrayType(new MixedType, new MixedType)),
+            FC::TAGS_INPUT => TypeCombinator::addNull(new ArrayType(new IntegerType, new StringType)),
+            FC::HIDDEN => new MixedType,
         ];
     }
 
