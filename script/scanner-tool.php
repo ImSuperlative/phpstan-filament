@@ -38,7 +38,8 @@ if ($analysedPaths === null) {
     $analysedPaths = [$projectPath.'/app'];
 }
 
-require dirname(__DIR__).'/vendor/autoload.php';
+require $projectPath.'/vendor/autoload.php';  // target project's classes
+require dirname(__DIR__).'/vendor/autoload.php';  // extension + PHPStan
 
 use ImSuperlative\PhpstanFilament\Scanner\FilamentProjectScanner;
 use PHPStan\DependencyInjection\ContainerFactory;
