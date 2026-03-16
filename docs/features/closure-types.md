@@ -135,7 +135,7 @@ BulkAction::make('publishSelected')
 The `$livewire` parameter resolves through a 3-priority chain:
 
 1. `@filament-page` annotation (explicit override)
-2. Schema call-site registry (who calls this schema)
+2. Scanner context (who calls this schema, via dependency graph)
 3. Namespace inference (convention-based)
 
 See [Annotations](../annotations.md) for `@filament-page` usage.
