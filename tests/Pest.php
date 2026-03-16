@@ -9,4 +9,4 @@ pest()->extend(TypeInferenceTestCase::class)
 
 // pest()->extend(ConfigurableRuleTestCase::class)->in('Rules');
 
-pest()->extend(\ImSuperlative\PhpstanFilament\Tests\Traits\TracksMemory::class);
+// pest()->extend(\ImSuperlative\PhpstanFilament\Tests\Traits\TracksMemory::class);
