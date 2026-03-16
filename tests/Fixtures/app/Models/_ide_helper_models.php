@@ -1,4 +1,5 @@
 <?php
+/** @noinspection all */
 
 // @formatter:off
 // phpcs:ignoreFile

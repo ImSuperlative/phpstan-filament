@@ -2,7 +2,6 @@
 
 namespace Fixtures\App\Resources\Employees\Pages;
 
-use App\Filament\Admin\Resources\Projects\ProjectResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables\Table;
@@ -14,7 +13,7 @@ class ManageEmployeeProjects extends ManageRelatedRecords
 
     protected static string $relationship = 'projects';
 
-    protected static ?string $relatedResource = ProjectResource::class;
+    // protected static ?string $relatedResource = ProjectResource::class;
 
     public function table(Table $table): Table
     {

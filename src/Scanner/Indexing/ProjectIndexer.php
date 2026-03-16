@@ -13,7 +13,6 @@ use ImSuperlative\PhpstanFilament\Support\NamespaceHelper;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Trait_;
 use PhpParser\Node\Stmt\TraitUse;
-use PhpParser\NodeFinder;
 
 class ProjectIndexer
 {
@@ -40,17 +39,18 @@ class ProjectIndexer
 
     public function index(): ProjectScanResult
     {
-        $filePaths = $this->discoverFilamentFiles();
-        $index = $this->indexFileMetadata($filePaths);
+        $index = $this->discoverAndIndex();
         $roots = $this->findResourceRoots($index);
 
         return new ProjectScanResult(index: $index, roots: $roots);
     }
 
-    /** @return list<string> */
-    protected function discoverFilamentFiles(): array
+    /**
+     * @return array<string, FileMetadata>
+     */
+    protected function discoverAndIndex(): array
     {
-        $filamentFiles = [];
+        $index = [];
 
         foreach ($this->discoverPhpFiles() as $filePath) {
             $code = file_get_contents($filePath);
@@ -62,23 +62,7 @@ class ProjectIndexer
                 continue;
             }
 
-            $filamentFiles[] = $filePath;
-        }
-
-        return $filamentFiles;
-    }
-
-    /**
-     * @param  list<string>  $filePaths
-     * @return array<string, FileMetadata>
-     */
-    protected function indexFileMetadata(array $filePaths): array
-    {
-        $index = [];
-        $finder = $this->fileParser->nodeFinder();
-
-        foreach ($filePaths as $filePath) {
-            $metadata = $this->parseFileMetadata($filePath, $finder);
+            $metadata = $this->parseFileMetadata($code);
             if ($metadata !== null) {
                 $index[$filePath] = $metadata;
             }
@@ -87,13 +71,9 @@ class ProjectIndexer
         return $index;
     }
 
-    protected function parseFileMetadata(string $filePath, NodeFinder $finder): ?FileMetadata
+    protected function parseFileMetadata(string $code): ?FileMetadata
     {
-        $code = file_get_contents($filePath);
-        if ($code === false) {
-            return null;
-        }
-
+        $finder = $this->fileParser->nodeFinder();
         $stmts = $this->fileParser->parse($code);
         $namespace = NamespaceHelper::findNamespaceDeclaration($stmts, $finder);
         $useMap = NamespaceHelper::buildQualifiedImportMapFromAst($stmts, $finder);

@@ -2,12 +2,12 @@
 
 namespace Fixtures\App\Resources\Employees;
 
-use App\Models\Employee;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Fixtures\App\Models\Employee;
 use Fixtures\App\Resources\Employees\Pages\CreateEmployee;
 use Fixtures\App\Resources\Employees\Pages\EditEmployee;
 use Fixtures\App\Resources\Employees\Pages\ListEmployees;

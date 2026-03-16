@@ -1,47 +1,58 @@
 <?php
 
-use ImSuperlative\PhpstanFilament\Tests\ConfigurableRuleTestCase;
+declare(strict_types=1);
+
+namespace ImSuperlative\PhpstanFilament\Tests\Rules;
+
 use ImSuperlative\PhpstanFilament\Tests\Factories\RelationshipValidationRuleFactory;
-use ImSuperlative\PhpstanFilament\Tests\PhpstanTestCase;
+use PHPStan\Rules\Rule;
+use PHPStan\Testing\RuleTestCase;
 
-function getRelationshipFactory(): RelationshipValidationRuleFactory
+/**
+ * @extends RuleTestCase<Rule<\PhpParser\Node>>
+ */
+class RelationshipValidationRuleTest extends RuleTestCase
 {
-    static $factory = null;
 
-    return $factory ??= PhpstanTestCase::getContainer()->getByType(RelationshipValidationRuleFactory::class);
+    protected function getRule(): Rule
+    {
+        return self::getContainer()
+            ->getByType(RelationshipValidationRuleFactory::class)
+            ->create(relationship: true);
+    }
+
+    public function test_invalid_relationship_names(): void
+    {
+        $this->analyse(
+            [project_root('tests/Fixtures/App/RelationshipTests/RelationshipResource.php')],
+            [
+                ["'writer' is not a relationship on Fixtures\\App\\Models\\Post.", 26],
+                ["'categorie' is not a relationship on Fixtures\\App\\Models\\Post.", 30],
+            ],
+        );
+    }
+
+    public function test_no_errors_for_standalone_classes_without_model_context(): void
+    {
+        $this->analyse(
+            [project_root('tests/Fixtures/App/RelationshipTests/ValidRelationships.php')],
+            [],
+        );
+    }
+
+    public function test_skips_standalone_invalid_relationships_without_model_context(): void
+    {
+        $this->analyse(
+            [project_root('tests/Fixtures/App/RelationshipTests/InvalidRelationships.php')],
+            [],
+        );
+    }
+
+    public static function getAdditionalConfigFiles(): array
+    {
+        return [
+            project_root('extension.neon'),
+            tests_path('phpstan-test-services.neon'),
+        ];
+    }
 }
-
-it('reports errors for invalid relationship names', function () {
-    ConfigurableRuleTestCase::useRule(getRelationshipFactory()->create(relationship: true));
-    $this->analyse(
-        [project_root('tests/Fixtures/App/RelationshipTests/RelationshipResource.php')],
-        [
-            ["'writer' is not a relationship on Fixtures\\App\\Models\\Post.", 26],
-            ["'categorie' is not a relationship on Fixtures\\App\\Models\\Post.", 30],
-        ]
-    );
-});
-
-it('does not report errors for standalone classes without model context', function () {
-    ConfigurableRuleTestCase::useRule(getRelationshipFactory()->create(relationship: true));
-    $this->analyse(
-        [project_root('tests/Fixtures/App/RelationshipTests/ValidRelationships.php')],
-        []
-    );
-});
-
-it('skips validation when the rule is disabled', function () {
-    ConfigurableRuleTestCase::useRule(getRelationshipFactory()->create(relationship: false));
-    $this->analyse(
-        [project_root('tests/Fixtures/App/RelationshipTests/RelationshipResource.php')],
-        []
-    );
-});
-
-it('skips standalone invalid relationships without model context', function () {
-    ConfigurableRuleTestCase::useRule(getRelationshipFactory()->create(relationship: true));
-    $this->analyse(
-        [project_root('tests/Fixtures/App/RelationshipTests/InvalidRelationships.php')],
-        []
-    );
-});

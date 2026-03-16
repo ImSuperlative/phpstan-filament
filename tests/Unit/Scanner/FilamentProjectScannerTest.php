@@ -32,16 +32,14 @@ it('scans and returns a ProjectScanResult', function () {
         ->and($result->roots)->not->toBeEmpty();
 });
 
-it('discovers files with Filament imports', function () {
-    $indexer = getIndexer();
-    $method = new ReflectionMethod($indexer, 'discoverFilamentFiles');
-    $filePaths = $method->invoke($indexer);
+it('discovers and indexes only files with Filament imports', function () {
+    $result = getIndexer()->index();
 
-    foreach ($filePaths as $filePath) {
+    foreach (array_keys($result->index) as $filePath) {
         expect(file_get_contents($filePath))->toContain('use Filament\\');
     }
 
-    expect($filePaths)->not->toBeEmpty();
+    expect($result->index)->not->toBeEmpty();
 });
 
 it('identifies resource classes as roots', function () {

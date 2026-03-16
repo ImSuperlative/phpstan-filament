@@ -77,10 +77,10 @@ it('extracts @method with static flag and return type from barryvdh file', funct
 
 it('parses Laravel Idea format correctly', function () {
     $result = $this->parser->parseFile(
-        project_root('/vendor/_laravel_idea/_ide_helper_models_Fixtures_App_Models.php')
+        fixture_path('/vendor/_laravel_idea/_ide_helper_models_Fixtures_App_Models.php')
     );
 
-    expect($result)->toHaveCount(7);
+    expect($result)->toHaveCount(8);
 
     $comment = $result['Fixtures\App\Models\Comment'];
     expect(describeType($comment->properties['body']->type))->toBe('string')
@@ -99,7 +99,7 @@ it('returns empty array for non-existent file', function () {
 
 it('resolves short type names using use imports', function () {
     $result = $this->parser->parseFile(
-        project_root('/vendor/_laravel_idea/_ide_helper_models_Fixtures_App_Models.php')
+        fixture_path('/vendor/_laravel_idea/_ide_helper_models_Fixtures_App_Models.php')
     );
 
     $author = $result['Fixtures\App\Models\Author'];
@@ -111,7 +111,7 @@ it('resolves short type names using use imports', function () {
 
 it('extracts non-static methods from Laravel Idea format', function () {
     $result = $this->parser->parseFile(
-        project_root('/vendor/_laravel_idea/_ide_helper_models_Fixtures_App_Models.php')
+        fixture_path('/vendor/_laravel_idea/_ide_helper_models_Fixtures_App_Models.php')
     );
 
     $post = $result['Fixtures\App\Models\Post'];

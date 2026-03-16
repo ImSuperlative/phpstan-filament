@@ -37,7 +37,7 @@ class StateColumnAssertions extends EditPost
             // Dot-notation: deferred — $state is mixed at default level 1
             TextColumn::make('author.name')
                 ->formatStateUsing(function ($state) {
-                    assertType('mixed', $state);
+                    assertType('string', $state);
 
                     return strtoupper($state);
                 }),
